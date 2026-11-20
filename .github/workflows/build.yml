@@ -61,8 +61,6 @@ jobs:
           echo "runtime=${RUNTIME_VERSION}" >> "$GITHUB_OUTPUT"
           echo "python_image=${PYTHON_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "solidcraft=${SOLIDCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "cad_verification=${CAD_VERIFICATION_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "cad_verification_commit=${CAD_VERIFICATION_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "pythonscad=${PYTHONSCAD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "pybosl2_commit=${PYBOSL2_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "cadquery=${CADQUERY_VERSION}" >> "$GITHUB_OUTPUT"
@@ -117,8 +115,6 @@ jobs:
             PYTHON_IMAGE=${{ steps.versions.outputs.python_image }}
             RUNTIME_VERSION=${{ steps.versions.outputs.runtime }}
             SOLIDCRAFT_VERSION=${{ steps.versions.outputs.solidcraft }}
-            CAD_VERIFICATION_VERSION=${{ steps.versions.outputs.cad_verification }}
-            CAD_VERIFICATION_COMMIT=${{ steps.versions.outputs.cad_verification_commit }}
             PYTHONSCAD_VERSION=${{ steps.versions.outputs.pythonscad }}
             PYBOSL2_COMMIT=${{ steps.versions.outputs.pybosl2_commit }}
             CADQUERY_VERSION=${{ steps.versions.outputs.cadquery }}
