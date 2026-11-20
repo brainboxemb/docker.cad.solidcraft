@@ -2,60 +2,45 @@
 
 ## Current state
 
-The initial monolithic runtime release remains available and immutable:
+The runtime split is complete and released as v0.2.0.
 
-- `ghcr.io/brainboxemb/cad-solidcraft:v0.1.0`;
-- Forge currently consumes that release;
-- clean hosted-runner pulls are about 40-45 seconds because the image also
-  carries independent reference engines that normal SolidCraft model
-  verification does not use.
+Immutable role images:
+
+- `ghcr.io/brainboxemb/cad-solidcraft:v0.2.0`;
+- `ghcr.io/brainboxemb/cad-reference:v0.2.0`.
+
+The legacy monolithic `cad-solidcraft:v0.1.0` remains immutable.
+
+Validation completed on 2026-11-20:
+
+- both role images passed PR build/smoke tests;
+- both `:edge` images passed main publication/smoke tests;
+- both v0.2.0 images passed immutable tag publication/smoke tests;
+- clean hosted-runner pull evidence:
+  - `cad-solidcraft:edge`: 9.974 s;
+  - `cad-solidcraft:v0.2.0`: 13.386 s;
+  - `cad-reference:edge`: 23.073 s;
+  - `cad-reference:v0.2.0`: 46.679 s.
+
+The SolidCraft role therefore meets the approximately <=20 s cold-pull
+engineering target on both measured runs. Reference-image timing shows registry
+variance but no longer affects normal model verification.
 
 ## Current goal
 
-Complete #4 by releasing role-specific v0.2.0 runtime images:
+No runtime implementation change is active.
 
-- `ghcr.io/brainboxemb/cad-solidcraft:v0.2.0` — lightweight SolidCraft
-  model/visual verification runtime;
-- `ghcr.io/brainboxemb/cad-reference:v0.2.0` — independent reference engines
-  for PythonSCAD, pyBOSL2, CadQuery and build123d.
+The next required proof belongs in the consumer:
 
-Both images come from one repository release and one `RUNTIME_VERSION`.
-
-CADCraft is not included in either v0.2.0 role unless a concrete consumer
-dependency is demonstrated. No current Forge or CAD-verification code path
-references it.
-
-## Required proof
-
-1. shared base contains only dependencies genuinely common to both roles;
-2. SolidCraft image contains SolidCraft plus released CAD verification support,
-   but no PythonSCAD, pyBOSL2, CadQuery or build123d;
-3. reference image contains the four independent reference engines and does not
-   contain SolidCraft;
-4. each role has its own smoke test;
-5. PR builds test both roles without publishing;
-6. main publishes and tests both `:edge` images;
-7. one immutable v0.2.0 release publishes and tests both role images;
-8. clean hosted-runner pull timing is recorded for each released role;
-9. no GitHub Actions cache transport is introduced;
-10. v0.1.0 remains unchanged and usable during consumer migration.
-
-## Execution order
-
-1. Update requirements/design for the two-role image contract.
-2. Implement multi-stage Dockerfile and role-specific smoke tests.
-3. Update build/release workflow for both packages.
-4. Bump `RUNTIME_VERSION` to 0.2.0.
-5. Prove both roles on a PR.
-6. Merge and prove both `:edge` images on main.
-7. Release immutable v0.2.0 from the exact green main commit.
-8. Measure clean pulls.
-9. Only then update Forge to the two immutable images and rerun one-model
-   `simple-box` timing.
+1. Forge pins the two immutable v0.2.0 role images explicitly.
+2. Forge returns to one-model `simple-box` staging.
+3. Measure end-to-end cold and warm `simple-box` verification.
+4. Only after that timing is understood may broader model migration resume.
 
 ## Open issue assessment — 2026-11-20
 
 | Issue | Status | Assessment |
 | --- | --- | --- |
-| #4 Split the lightweight SolidCraft runtime from the heavy reference toolchain | now | Required before further Forge model expansion; current monolithic image dominates cold one-model CI time. |
+| #7 Update runtime plan after v0.2.0 role-image release | effectively complete but still open | Close after this plan-only update merges. |
+| #4 Split the lightweight SolidCraft runtime from the heavy reference toolchain | effectively complete | v0.2.0 is released and independently smoke-tested. |
 | #1 Establish released SolidCraft CAD runtime | effectively complete | v0.1.0 remains the immutable legacy release. |
