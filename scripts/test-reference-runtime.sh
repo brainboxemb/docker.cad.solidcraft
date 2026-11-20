@@ -5,10 +5,10 @@ cad-reference-info
 
 python - <<'PY'
 import importlib.metadata as metadata
+import importlib.util
 import os
 from pathlib import Path
 
-import cad_verification
 import cadquery
 import matplotlib
 import PIL
@@ -18,8 +18,10 @@ import scipy
 import trimesh
 import yaml
 
+if importlib.util.find_spec("cad_verification") is not None:
+    raise SystemExit("unexpected cad_verification package in reference runtime")
+
 expected = {
-    "brainboxemb-cad-verification-lib": os.environ["CAD_VERIFICATION_VERSION"],
     "cadquery": os.environ["CADQUERY_VERSION"],
 }
 
@@ -31,7 +33,6 @@ for distribution, version in expected.items():
 if Path("/opt/solidcraft").exists():
     raise SystemExit("unexpected SolidCraft installation in reference runtime")
 
-assert cad_verification
 assert cadquery
 assert matplotlib
 assert PIL

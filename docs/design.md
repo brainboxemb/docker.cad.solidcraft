@@ -4,52 +4,18 @@
 
 ```text
 docker.cad.solidcraft
-  versions.env
-  Dockerfile
-  role-specific smoke tests
-  build/release workflows
-       |
-       +--> ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z
-       |
-       +--> ghcr.io/brainboxemb/cad-reference:vX.Y.Z
+  -> cad-solidcraft:vX.Y.Z
+  -> cad-reference:vX.Y.Z
 
-consumer repositories
-  -> explicitly select the immutable role image they need
+consumer CI
+  -> selects one immutable runtime image
+  -> supplies exact verification wheel separately
 ```
 
-The repository owns packaging and version pins. Consumers own project/model
-behavior.
+Docker owns CAD engines and stable runtime dependencies. It does not own the
+verification-library version.
 
-## Release model
-
-One SemVer release publishes both role images from one exact verified commit.
-
-```text
-versions.env
-  RUNTIME_VERSION=X.Y.Z
-       |
-       v
-branch / PR
-  build target solidcraft
-  build target reference
-  smoke-test both
-       |
-       v
-main
-  publish/test cad-solidcraft:edge
-  publish/test cad-reference:edge
-       |
-       v
-release vX.Y.Z
-  validate exact green commit
-  create immutable repository tag
-  build/publish/test both role images
-  create one GitHub Release
-```
-
-## Docker stage model
-
-The common stage contains only dependencies genuinely shared by both roles.
+## Role layout
 
 ```text
 python base
@@ -58,95 +24,65 @@ python base
 common
   shared system libraries
   PyYAML
-  released cad-verification --no-deps
    |
-   +----------------------------+
-   |                            |
-   v                            v
-solidcraft                   reference
-Pillow                       Pillow
-SolidCraft                   trimesh
-                             scipy
-                             matplotlib
-                             PythonSCAD
-                             pyBOSL2
-                             CadQuery
-                             build123d venv
+   +-------------------------+
+   |                         |
+   v                         v
+solidcraft                reference
+Pillow                    Pillow
+SolidCraft                trimesh
+                          scipy
+                          matplotlib
+                          PythonSCAD
+                          pyBOSL2
+                          CadQuery
+                          build123d
 ```
 
-The SolidCraft role intentionally does not inherit the geometry/reference
-Python stack. Released `lib.py.cad.verification` keeps its complete package
-metadata, while this runtime owns the explicit dependency subset appropriate to
-each role.
+Neither role contains `cad_verification`.
 
-The `solidcraft` target must never contain reference engines or the
-trimesh/scipy/matplotlib geometry stack. The `reference` target must never
-inherit SolidCraft.
+## Consumer verification injection
 
-CADCraft remains omitted unless a concrete current consumer requires it.
+The verification package travels through the CI dependency graph:
 
-## Role metadata
+```text
+released lib.py.cad.verification
+  -> tested wheel
+  -> one CAD-CI dependency output
+       |
+       +--> model verification container
+       |      + Forge wheel
+       |
+       +--> reference verification container
+```
 
-Every role exposes:
+The container receives the wheel read-only and adds it to `PYTHONPATH`.
+
+A new verification-library release therefore changes only the consumer
+dependency pin. It does not invalidate/rebuild the CAD runtime image.
+
+Model-local `verification/verify.py` stays source-mounted and can change with
+the model without any package or runtime rebuild.
+
+## Runtime metadata
+
+Images expose:
 
 - `CAD_RUNTIME_VERSION`;
 - `CAD_RUNTIME_ROLE`;
-- `CAD_VERIFICATION_VERSION`.
+- role-owned engine versions.
 
-Role-specific version variables are exposed only in the image that owns them.
+There is intentionally no `CAD_VERIFICATION_VERSION` image metadata.
 
-## Smoke-test model
+## Smoke boundary
 
-The repository owns two executable tests:
+Docker smoke tests prove only runtime composition. They require
+`cad_verification` to be absent.
 
-```text
-test-cad-solidcraft-runtime
-test-cad-reference-runtime
-```
+Consumer integration tests prove that a separately supplied released
+verification wheel works with the selected runtime image.
 
-The SolidCraft smoke test validates both the installed tools and the import
-boundary:
+## Release model
 
-```text
-from cad_verification import SolidCraftVerification,
-                             run_solidcraft_verification
-  -> cad_verification.geometry not loaded
-  -> cad_verification.visual not loaded
-  -> trimesh/scipy/matplotlib distributions absent
-```
-
-Pillow stays in the SolidCraft role because that role also owns normal visual
-verification when a consumer requests the public visual APIs.
-
-The reference smoke test retains the complete geometry/reference import checks.
-Presence and deliberate absence checks protect role boundaries from future
-Dockerfile regressions.
-
-## CI architecture
-
-A two-entry build matrix remains authoritative:
-
-```text
-role=solidcraft
-  target=solidcraft
-  package=cad-solidcraft
-  smoke=test-cad-solidcraft-runtime
-
-role=reference
-  target=reference
-  package=cad-reference
-  smoke=test-cad-reference-runtime
-```
-
-PRs load each built image locally and smoke-test it. Main and release tags push
-each role package, then clean-pull/run that exact published tag.
-
-The workflow does not use GitHub Actions cache transport.
-
-## Performance evidence
-
-Clean pull timing is recorded separately for each published role. Registry
-variance means one measurement is evidence rather than a correctness threshold.
-
-The normal Forge critical path uses only `cad-solidcraft`. Reference-image size
-or pull variance must not affect a normal model-verification PR.
+One runtime SemVer release publishes both role images from one exact tested
+commit. Runtime releases are independent from verification-library releases.

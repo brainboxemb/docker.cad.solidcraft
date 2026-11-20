@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.1
+
+### Changed
+
+- Remove `lib.py.cad.verification` from both runtime images.
+- Remove verification version/commit metadata from the runtime release.
+- Consumers now supply the exact released verification package separately at
+  execution time.
+- Require both role smoke tests to prove that `cad_verification` is absent.
+- Preserve all SolidCraft and independent reference-engine versions from
+  v0.3.0.
+
 ## v0.3.0
 
 ### Changed
