@@ -33,7 +33,7 @@ It must not contain:
 
 - `lib.py.cad.verification` / `cad_verification`;
 - trimesh, scipy or matplotlib;
-- PythonSCAD, pyBOSL2, CadQuery or build123d.
+- PythonSCAD, pyBOSL2, CadQuery, build123d or CADCraft.
 
 The consumer supplies the exact released verification package at execution
 time, for example as a mounted wheel on `PYTHONPATH`.
@@ -46,6 +46,7 @@ time, for example as a mounted wheel on `PYTHONPATH`.
 - pyBOSL2;
 - CadQuery;
 - build123d;
+- CADCraft;
 - Pillow;
 - trimesh;
 - scipy;
@@ -86,11 +87,13 @@ SolidCraft smoke proves:
 - `solidcraft-cli` starts;
 - PyYAML and Pillow are present;
 - `cad_verification` is absent;
-- heavy geometry/reference modules are absent.
+- heavy geometry/reference modules are absent;
+- `cadcraft-cli` is absent.
 
 Reference smoke proves:
 
-- PythonSCAD, pyBOSL2, CadQuery and build123d work;
+- PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft work;
+- CADCraft reports the exact pinned version;
 - Pillow, trimesh, scipy and matplotlib are present;
 - `cad_verification` is absent;
 - SolidCraft is absent.
