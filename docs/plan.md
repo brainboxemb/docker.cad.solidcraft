@@ -2,50 +2,55 @@
 
 ## Current state
 
-Runtime v0.3.0 is released but still embeds `lib.py.cad.verification`.
-That couples verification-library changes to Docker releases and is the wrong
-ownership boundary.
+Runtime v0.3.1 is released with the corrected package/runtime ownership
+boundary:
 
-Forge already source-mounts model-local verification definitions. Its CAD-CI
-dependency graph can likewise supply a separately built verification wheel.
+- neither runtime embeds `lib.py.cad.verification`;
+- `cad-solidcraft` is the lightweight SolidCraft role;
+- `cad-reference` contains the independent Python reference CAD stack.
+
+Forge now uses CADCraft for verification/documentation evidence but still
+downloads and manages the CADCraft binary itself. That crosses the runtime
+ownership boundary: CADCraft is an independent/reference CAD engine and belongs
+in the released reference image.
 
 ## Current goal
 
-Complete #12 and release runtime v0.3.1 with the corrected boundary:
+Complete #15 and release runtime v0.3.2:
 
-- remove `cad_verification` from both runtime images;
-- remove verification version/commit metadata from `versions.env`;
-- keep all CAD engine versions and the v0.3.0 role split unchanged;
-- smoke-test that `cad_verification` is absent;
-- publish immutable v0.3.1.
+- add CADCraft 0.20.1 to `cad-reference` only;
+- pin its release archive SHA-256 in `versions.env`;
+- expose `cadcraft-cli` on PATH and runtime metadata;
+- smoke-test the exact CADCraft version;
+- keep all existing engine/dependency versions unchanged;
+- keep `cad-solidcraft` free of CADCraft.
 
 ## Required proof
 
-- neither role contains the verification distribution/module;
-- SolidCraft 0.42.0 and all reference-engine pins remain unchanged;
-- SolidCraft keeps PyYAML/Pillow and excludes heavy geometry/reference modules;
-- reference keeps the existing engine/geometry stack;
+- reference image runs `cadcraft-cli --version` and reports 0.20.1;
+- reference image retains PythonSCAD, pyBOSL2, CadQuery and build123d;
+- SolidCraft image still has no CADCraft executable;
+- neither image contains `cad_verification`;
 - both PR role-image smoke tests pass;
 - main `:edge` build passes;
-- immutable v0.3.1 is published from the exact green main commit;
-- consumer integration is proven separately with a mounted released
-  verification wheel.
+- immutable v0.3.2 is published from the exact green main commit.
 
 ## Execution order
 
-1. Remove verification package/pins from runtime images and docs.
-2. Prove both role boundaries in PR smoke tests.
-3. Merge and prove main `:edge`.
-4. Release immutable v0.3.1.
-5. Update Forge to supply the verification wheel as a CAD-CI dependency.
-6. Resume Forge #537 batch 1.
+1. Add the CADCraft pin/checksum and reference-image installation.
+2. Extend metadata and role smoke tests.
+3. Prove both role images in PR.
+4. Merge and prove main `:edge`.
+5. Release immutable v0.3.2.
+6. Update Forge to consume CADCraft from `cad-reference:v0.3.2` and remove
+   Forge-owned CADCraft download/cache logic.
 
 ## Open issue assessment — 2026-11-20
 
 | Issue | Status | Assessment |
 | --- | --- | --- |
-| #12 Remove verification library from runtime images and release v0.3.1 | now | Correct the package/runtime ownership boundary before Forge batch 1. |
+| #15 Add CADCraft to the reference runtime | now | Restore CADCraft to the heavy reference role so Forge no longer owns its binary lifecycle. |
 
 Immediate chain:
 
-`#12 runtime boundary -> Forge verification-wheel dependency -> #537 batch 1`.
+`#15 reference runtime -> v0.3.2 -> Forge consumes released CADCraft`.
