@@ -88,6 +88,9 @@ ARG PYTHONSCAD_VERSION
 ARG PYBOSL2_COMMIT
 ARG CADQUERY_VERSION
 ARG BUILD123D_VERSION
+ARG CADCRAFT_VERSION
+ARG CADCRAFT_ARCH
+ARG CADCRAFT_ARCHIVE_SHA256
 ARG PILLOW_SPEC
 ARG TRIMESH_SPEC
 ARG SCIPY_SPEC
@@ -102,6 +105,9 @@ ENV CAD_RUNTIME_ROLE=reference \
     CADQUERY_VERSION=${CADQUERY_VERSION} \
     BUILD123D_VERSION=${BUILD123D_VERSION} \
     BUILD123D_PYTHON=/opt/build123d/bin/python \
+    CADCRAFT_VERSION=${CADCRAFT_VERSION} \
+    CADCRAFT_ARCH=${CADCRAFT_ARCH} \
+    PATH=/opt/cadcraft/bin:$PATH \
     MPLBACKEND=Agg
 
 RUN python -m pip install \
@@ -116,6 +122,19 @@ RUN python -m pip install \
     && python -m venv /opt/build123d \
     && /opt/build123d/bin/python -m pip install --upgrade pip setuptools wheel \
     && /opt/build123d/bin/python -m pip install "build123d==${BUILD123D_VERSION}"
+
+RUN set -eux; \
+    archive="cadcraft-${CADCRAFT_VERSION}-linux-${CADCRAFT_ARCH}.tar.gz"; \
+    base="https://github.com/storytold/cadcraft/releases/download/v${CADCRAFT_VERSION}"; \
+    root="cadcraft-${CADCRAFT_VERSION}-linux-${CADCRAFT_ARCH}"; \
+    mkdir -p /opt/cadcraft/bin /tmp/cadcraft; \
+    cd /tmp/cadcraft; \
+    curl --proto '=https' -fsSLO "${base}/${archive}"; \
+    printf '%s  %s\n' "${CADCRAFT_ARCHIVE_SHA256}" "${archive}" | sha256sum -c -; \
+    tar -xzf "${archive}"; \
+    install -m 0755 "${root}/bin/cadcraft-cli" /opt/cadcraft/bin/cadcraft-cli; \
+    /opt/cadcraft/bin/cadcraft-cli --version; \
+    rm -rf /tmp/cadcraft
 
 COPY scripts/cad-reference-info /usr/local/bin/cad-reference-info
 COPY scripts/test-reference-runtime.sh /usr/local/bin/test-cad-reference-runtime
