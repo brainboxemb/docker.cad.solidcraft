@@ -5,10 +5,6 @@ ARG RUNTIME_VERSION
 ARG CAD_VERIFICATION_VERSION
 ARG CAD_VERIFICATION_COMMIT
 ARG PYYAML_VERSION
-ARG PILLOW_SPEC
-ARG TRIMESH_SPEC
-ARG SCIPY_SPEC
-ARG MATPLOTLIB_SPEC
 
 LABEL org.opencontainers.image.source="https://github.com/brainboxemb/docker.cad.solidcraft"
 
@@ -16,7 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    MPLBACKEND=Agg \
     CAD_RUNTIME_VERSION=${RUNTIME_VERSION} \
     CAD_VERIFICATION_VERSION=${CAD_VERIFICATION_VERSION}
 
@@ -45,13 +40,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install \
-        "PyYAML==${PYYAML_VERSION}" \
-        "Pillow${PILLOW_SPEC}" \
-        "trimesh${TRIMESH_SPEC}" \
-        "scipy${SCIPY_SPEC}" \
-        "matplotlib${MATPLOTLIB_SPEC}" \
-        "https://github.com/brainboxemb/lib.py.cad.verfication/archive/${CAD_VERIFICATION_COMMIT}.zip"
+    && python -m pip install "PyYAML==${PYYAML_VERSION}" \
+    && python -m pip install --no-deps \
+        "https://github.com/brainboxemb/lib.py.cad.verification/archive/${CAD_VERIFICATION_COMMIT}.zip"
 
 WORKDIR /work
 
@@ -60,6 +51,7 @@ FROM common AS solidcraft
 
 ARG RUNTIME_VERSION
 ARG SOLIDCRAFT_VERSION
+ARG PILLOW_SPEC
 
 LABEL org.opencontainers.image.title="SolidCraft CAD runtime"
 LABEL org.opencontainers.image.description="Lightweight SolidCraft model and visual verification runtime"
@@ -69,6 +61,8 @@ ENV CAD_RUNTIME_ROLE=solidcraft \
     SOLIDCRAFT_VERSION=${SOLIDCRAFT_VERSION} \
     SOLIDCRAFT_GPU=cpu \
     PATH=/opt/solidcraft/bin:$PATH
+
+RUN python -m pip install "Pillow${PILLOW_SPEC}"
 
 RUN set -eux; \
     archive="solidcraft-${SOLIDCRAFT_VERSION}-linux-x86_64.tar.gz"; \
@@ -99,6 +93,10 @@ ARG PYTHONSCAD_VERSION
 ARG PYBOSL2_COMMIT
 ARG CADQUERY_VERSION
 ARG BUILD123D_VERSION
+ARG PILLOW_SPEC
+ARG TRIMESH_SPEC
+ARG SCIPY_SPEC
+ARG MATPLOTLIB_SPEC
 
 LABEL org.opencontainers.image.title="CAD reference runtime"
 LABEL org.opencontainers.image.description="Independent CAD reference engines for verification"
@@ -108,9 +106,15 @@ ENV CAD_RUNTIME_ROLE=reference \
     PYBOSL2_COMMIT=${PYBOSL2_COMMIT} \
     CADQUERY_VERSION=${CADQUERY_VERSION} \
     BUILD123D_VERSION=${BUILD123D_VERSION} \
-    BUILD123D_PYTHON=/opt/build123d/bin/python
+    BUILD123D_PYTHON=/opt/build123d/bin/python \
+    MPLBACKEND=Agg
 
 RUN python -m pip install \
+        "Pillow${PILLOW_SPEC}" \
+        "trimesh${TRIMESH_SPEC}" \
+        "scipy${SCIPY_SPEC}" \
+        "matplotlib${MATPLOTLIB_SPEC}" \
+    && python -m pip install \
         "pythonscad==${PYTHONSCAD_VERSION}" \
         "git+https://github.com/pinkfish/pybosl2@${PYBOSL2_COMMIT}" \
         "cadquery==${CADQUERY_VERSION}" \
