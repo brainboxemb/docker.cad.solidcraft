@@ -8,8 +8,8 @@ Persistent guidance for automated coding agents working in
 This repository owns the reusable Docker runtime for SolidCraft-based CAD
 verification in the brainboxemb ecosystem.
 
-The runtime is a toolchain/runtime package, not a project-specific build system.
-Consumer repositories decide when and how to use it.
+The repository publishes role-specific toolchain/runtime packages, not a project-specific build system.
+Consumer repositories decide which immutable runtime role they need and when to use it.
 
 ## Sources of truth
 
@@ -46,9 +46,11 @@ Stable libraries used on nearly every SolidCraft verification run may be
 preinstalled for efficiency. Installing a released library in this runtime does
 not transfer code ownership to this repository.
 
-The initial runtime preserves the proven Forge runtime toolchain:
-SolidCraft, CADCraft, released CAD verification library, PythonSCAD, pyBOSL2,
-CadQuery, build123d and shared Python dependencies.
+Role images must stay separated by responsibility. `cad-solidcraft` contains
+SolidCraft plus shared verification dependencies. `cad-reference` contains
+PythonSCAD, pyBOSL2, CadQuery and build123d plus shared verification
+dependencies. Do not add a tool to both roles merely because an older
+monolithic image contained it.
 
 ## Cache policy
 
@@ -61,10 +63,12 @@ The published image itself is the reusable runtime artifact.
 
 ## Consumer boundary
 
-Consumer repositories should depend only on an immutable image tag, for example:
+Consumer repositories should depend only on the immutable role image they need,
+for example:
 
 ```text
-ghcr.io/brainboxemb/cad-solidcraft:v0.1.0
+ghcr.io/brainboxemb/cad-solidcraft:v0.2.0
+ghcr.io/brainboxemb/cad-reference:v0.2.0
 ```
 
 Consumers must not copy this repository's Dockerfile, version pins or release

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.0
+
+### Changed
+
+- Split the monolithic runtime into two role-specific immutable images.
+- `cad-solidcraft` now contains only SolidCraft plus shared CAD verification
+  dependencies needed by normal model/visual verification.
+- Added `cad-reference` for PythonSCAD, pyBOSL2, CadQuery and build123d.
+- Removed CADCraft from the v0.2.0 role images because no current consumer
+  dependency requires it.
+- Added independent positive/negative smoke tests for both runtime roles.
+- Build/release CI now builds, publishes and clean-pull measures both role
+  images under one SemVer release.
+
 ## v0.1.0
 
 ### Added

@@ -26,13 +26,25 @@ permissions:
   packages: write
 
 concurrency:
-  group: cad-solidcraft-${{ github.ref }}
+  group: cad-runtime-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - role: solidcraft
+            target: solidcraft
+            package: cad-solidcraft
+            smoke: test-cad-solidcraft-runtime
+          - role: reference
+            target: reference
+            package: cad-reference
+            smoke: test-cad-reference-runtime
 
     steps:
       - name: Checkout
@@ -51,8 +63,6 @@ jobs:
           echo "solidcraft=${SOLIDCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
           echo "cad_verification=${CAD_VERIFICATION_VERSION}" >> "$GITHUB_OUTPUT"
           echo "cad_verification_commit=${CAD_VERIFICATION_COMMIT}" >> "$GITHUB_OUTPUT"
-          echo "cadcraft=${CADCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "cadcraft_sha256=${CADCRAFT_SHA256}" >> "$GITHUB_OUTPUT"
           echo "pythonscad=${PYTHONSCAD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "pybosl2_commit=${PYBOSL2_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "cadquery=${CADQUERY_VERSION}" >> "$GITHUB_OUTPUT"
@@ -86,7 +96,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/cad-solidcraft
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.package }}
           tags: |
             type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag
@@ -97,6 +107,7 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          target: ${{ matrix.target }}
           push: ${{ github.event_name != 'pull_request' }}
           load: ${{ github.event_name == 'pull_request' }}
           provenance: false
@@ -108,8 +119,6 @@ jobs:
             SOLIDCRAFT_VERSION=${{ steps.versions.outputs.solidcraft }}
             CAD_VERIFICATION_VERSION=${{ steps.versions.outputs.cad_verification }}
             CAD_VERIFICATION_COMMIT=${{ steps.versions.outputs.cad_verification_commit }}
-            CADCRAFT_VERSION=${{ steps.versions.outputs.cadcraft }}
-            CADCRAFT_SHA256=${{ steps.versions.outputs.cadcraft_sha256 }}
             PYTHONSCAD_VERSION=${{ steps.versions.outputs.pythonscad }}
             PYBOSL2_COMMIT=${{ steps.versions.outputs.pybosl2_commit }}
             CADQUERY_VERSION=${{ steps.versions.outputs.cadquery }}
@@ -124,14 +133,31 @@ jobs:
         shell: bash
         env:
           IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          EVENT_NAME: ${{ github.event_name }}
+          SMOKE_COMMAND: ${{ matrix.smoke }}
         run: |
           set -euo pipefail
           IMAGE="$(printf '%s\n' "$IMAGE_TAGS" | head -n1)"
           echo "Testing ${IMAGE}"
-          docker run --rm "${IMAGE}" test-cad-solidcraft-runtime
 
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            started="$(date +%s%3N)"
+            docker pull "${IMAGE}"
+            finished="$(date +%s%3N)"
+            elapsed_ms="$((finished - started))"
+            echo "Clean pull ${{ matrix.role }}: ${elapsed_ms} ms"
+          fi
+
+          docker run --rm "${IMAGE}" "$SMOKE_COMMAND"
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -140,22 +166,25 @@ jobs:
           set -euo pipefail
 
           cat > release-notes.md <<EOF
-          SolidCraft CAD runtime ${VERSION}
+          CAD runtime release ${VERSION}
 
-          Immutable image:
-          ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-solidcraft:${VERSION}
+          Immutable images:
+          - ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-solidcraft:${VERSION}
+          - ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-reference:${VERSION}
 
-          This release was built and smoke-tested from the matching immutable
-          repository tag.
+          Both role images were built and smoke-tested from the matching
+          immutable repository tag.
           EOF
 
-          if gh release view "${VERSION}" >/dev/null 2>&1; then
+          if gh release view "${VERSION}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
             gh release edit "${VERSION}" \
-              --title "SolidCraft CAD runtime ${VERSION}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "CAD runtime ${VERSION}" \
               --notes-file release-notes.md
           else
             gh release create "${VERSION}" \
+              --repo "${GITHUB_REPOSITORY}" \
               --verify-tag \
-              --title "SolidCraft CAD runtime ${VERSION}" \
+              --title "CAD runtime ${VERSION}" \
               --notes-file release-notes.md
           fi

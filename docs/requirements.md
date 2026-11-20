@@ -2,74 +2,122 @@
 
 ## Ownership
 
-`docker.cad.solidcraft` is the single owner of the reusable SolidCraft CAD
-runtime image.
+`docker.cad.solidcraft` owns the reusable runtime packages used by SolidCraft
+model verification and independent reference verification.
 
-Consumer repositories:
-
-- select a released runtime image;
-- run their own project/model verification inside it;
-- do not own the runtime Dockerfile, dependency pins or publication workflow.
+Consumer repositories select released immutable images. They do not own the
+Dockerfile, dependency pins, runtime package composition or publication flow.
 
 ## Versioning
 
-Runtime releases use SemVer.
+One repository release version governs all role images.
 
-- `versions.env::RUNTIME_VERSION` is the release version source of truth.
+- `versions.env::RUNTIME_VERSION` is the release source of truth.
 - Repository release tags use `vX.Y.Z`.
-- Container release tags use the same immutable `vX.Y.Z`.
-- `:edge` represents current `main` only.
-- Existing release tags must never be overwritten with changed contents.
+- Every role image published by that release uses the same immutable `vX.Y.Z`.
+- `:edge` represents current `main` for each role.
+- Existing release tags and image tags are never overwritten.
 
-## Runtime capabilities
+## Runtime roles
 
-The initial runtime must preserve the currently proven SolidCraft Forge runtime
-capabilities:
+### SolidCraft role
 
-- SolidCraft 0.42.0;
-- CADCraft;
-- released `lib.py.cad.verfication`;
+Published as:
+
+```text
+ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z
+```
+
+It contains only what normal SolidCraft-backed model/visual verification needs:
+
+- SolidCraft;
+- released `lib.py.cad.verification`;
+- shared Python/system dependencies required by that verification path.
+
+It must not contain:
+
+- PythonSCAD;
+- pyBOSL2;
+- CadQuery;
+- build123d.
+
+### Reference role
+
+Published as:
+
+```text
+ghcr.io/brainboxemb/cad-reference:vX.Y.Z
+```
+
+It contains the independent reference engines used by Forge:
+
 - PythonSCAD;
 - pyBOSL2;
 - CadQuery;
 - build123d;
-- shared Python/runtime dependencies needed by those tools.
+- released `lib.py.cad.verification`;
+- shared Python/system dependencies required by reference validation/export.
 
-Frequently reused libraries may remain preinstalled for efficiency.
+It must not contain SolidCraft merely for packaging convenience.
+
+### CADCraft
+
+CADCraft is not part of either v0.2.0 role unless a concrete current consumer
+requires it. Historical inclusion in v0.1.0 is not sufficient justification.
+If a future role needs CADCraft, that dependency must be designed and tested
+explicitly.
+
+## Shared layers
+
+The Dockerfile may share build stages/layers between roles only where the
+dependencies are genuinely common. Shared stages must not pull heavy
+reference-only dependencies into the SolidCraft image.
 
 ## Build and publication
 
-- pull requests build and smoke-test locally but do not publish;
-- `main` publishes and smoke-tests `:edge`;
-- immutable `vX.Y.Z` tags publish and smoke-test the matching image;
-- the release workflow validates the requested version against
-  `versions.env` and an exact commit SHA;
-- the release workflow creates the immutable Git tag;
-- the normal build workflow remains authoritative for image publication;
-- release-tag builds create the corresponding GitHub Release.
+- pull requests build and smoke-test both role images locally without publish;
+- `main` publishes and smoke-tests both `:edge` images;
+- immutable `vX.Y.Z` tags publish and smoke-test both matching role images;
+- the release workflow validates one requested version and exact commit;
+- the normal build workflow remains authoritative for both image packages;
+- release-tag builds create one GitHub Release describing both immutable images.
 
 ## Cache policy
 
-GitHub Actions cache storage is not used for Docker layer reuse.
+GitHub Actions cache transport is not used for Docker layer reuse.
 
-The build workflow must not use:
-
-- `actions/cache`;
-- Buildx `cache-from: type=gha`;
-- Buildx `cache-to: type=gha`.
+The build workflow must not use `actions/cache` or Buildx `type=gha`
+cache import/export.
 
 ## Verification
 
-A successful image build is insufficient.
+Each role has an independent smoke test.
 
-The build workflow must run a real container smoke test that checks:
+SolidCraft smoke testing proves:
 
-- public CAD commands start and report usable versions;
-- required Python packages import;
-- the released CAD verification package version matches the configured pin;
-- the image can perform a minimal SolidCraft CLI operation/version check.
+- `solidcraft-cli` starts and reports a version;
+- the configured CAD-verification distribution is installed at the exact pin;
+- the Python dependencies required for normal SolidCraft verification import;
+- reference engines are absent.
+
+Reference smoke testing proves:
+
+- PythonSCAD imports;
+- pyBOSL2 imports;
+- CadQuery imports at the exact pin;
+- build123d imports from its isolated environment;
+- the configured CAD-verification distribution is installed at the exact pin;
+- SolidCraft is absent.
+
+## Performance acceptance
+
+Clean pull timing is measured on GitHub-hosted runners after immutable release.
+
+For the SolidCraft role, the engineering target is approximately <=20 seconds
+under comparable external registry conditions. The measurement is evidence, not
+a correctness gate against registry/network variance.
 
 ## Consumer migration
 
-A consumer may move to a new immutable runtime tag only after that release image
-has been built and smoke-tested successfully.
+Consumers remain on v0.1.0 until v0.2.0 has been built, independently
+smoke-tested and released. Migration is then explicit and consumer-owned.
