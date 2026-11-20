@@ -2,8 +2,6 @@ ARG PYTHON_IMAGE
 FROM ${PYTHON_IMAGE} AS common
 
 ARG RUNTIME_VERSION
-ARG CAD_VERIFICATION_VERSION
-ARG CAD_VERIFICATION_COMMIT
 ARG PYYAML_VERSION
 
 LABEL org.opencontainers.image.source="https://github.com/brainboxemb/docker.cad.solidcraft"
@@ -12,8 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    CAD_RUNTIME_VERSION=${RUNTIME_VERSION} \
-    CAD_VERIFICATION_VERSION=${CAD_VERIFICATION_VERSION}
+    CAD_RUNTIME_VERSION=${RUNTIME_VERSION}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -40,9 +37,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install "PyYAML==${PYYAML_VERSION}" \
-    && python -m pip install --no-deps \
-        "https://github.com/brainboxemb/lib.py.cad.verification/archive/${CAD_VERIFICATION_COMMIT}.zip"
+    && python -m pip install "PyYAML==${PYYAML_VERSION}"
 
 WORKDIR /work
 
