@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.2
+
+### Changed
+
+- Add CADCraft 0.20.1 to the heavy `cad-reference` role.
+- Pin and verify the CADCraft release archive SHA-256 during image build.
+- Expose `cadcraft-cli` on PATH and report its exact runtime version.
+- Keep `cad-solidcraft` unchanged and free of CADCraft.
+- Preserve all existing SolidCraft, PythonSCAD, pyBOSL2, CadQuery and build123d
+  versions from v0.3.1.
+
+
 ## v0.3.1
 
 ### Changed
