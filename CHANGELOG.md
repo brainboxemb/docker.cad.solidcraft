@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.1
+
+### Changed
+
+- Pin released `lib.py.cad.verification` 0.11.0 at exact commit
+  `9f2802816637d944c88815352ecadb72e78027f5`.
+- Preserve the v0.3.0 runtime-role split, dependency composition and tool
+  versions unchanged.
+
 ## v0.3.0
 
 ### Changed
