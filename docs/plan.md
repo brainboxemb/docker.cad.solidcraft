@@ -2,49 +2,50 @@
 
 ## Current state
 
-Runtime v0.3.0 is released with the lean role split proven and immutable.
+Runtime v0.3.0 is released but still embeds `lib.py.cad.verification`.
+That couples verification-library changes to Docker releases and is the wrong
+ownership boundary.
 
-`lib.py.cad.verification` 0.11.0 is now released at exact commit
-`9f2802816637d944c88815352ecadb72e78027f5`. Forge #432 batch 1 requires
-that released API inside the immutable runtime.
+Forge already source-mounts model-local verification definitions. Its CAD-CI
+dependency graph can likewise supply a separately built verification wheel.
 
 ## Current goal
 
-Complete #12 and release runtime v0.3.1.
+Complete #12 and release runtime v0.3.1 with the corrected boundary:
 
-This is a dependency-pin patch release only:
-
-- keep the v0.3.0 role composition unchanged;
-- pin CAD verification 0.11.0 at the exact released commit;
-- bump RUNTIME_VERSION to 0.3.1;
-- run the existing independent role smoke tests;
-- publish immutable v0.3.1 from the exact green main commit.
+- remove `cad_verification` from both runtime images;
+- remove verification version/commit metadata from `versions.env`;
+- keep all CAD engine versions and the v0.3.0 role split unchanged;
+- smoke-test that `cad_verification` is absent;
+- publish immutable v0.3.1.
 
 ## Required proof
 
-- cad-solidcraft and cad-reference both contain CAD verification 0.11.0;
-- the existing positive/negative role smoke tests remain green;
+- neither role contains the verification distribution/module;
 - SolidCraft 0.42.0 and all reference-engine pins remain unchanged;
-- dependency split remains unchanged;
-- main :edge build is green;
-- immutable v0.3.1 build/release is green;
-- only after release may Forge adopt v0.3.1.
+- SolidCraft keeps PyYAML/Pillow and excludes heavy geometry/reference modules;
+- reference keeps the existing engine/geometry stack;
+- both PR role-image smoke tests pass;
+- main `:edge` build passes;
+- immutable v0.3.1 is published from the exact green main commit;
+- consumer integration is proven separately with a mounted released
+  verification wheel.
 
 ## Execution order
 
-1. Update versions.env and changelog only.
-2. Run both role-image PR smoke tests.
-3. Merge and prove main :edge.
-4. Create immutable v0.3.1 release request for the exact green main commit.
-5. Verify tagged role-image build.
-6. Resume Forge #432 batch 1.
+1. Remove verification package/pins from runtime images and docs.
+2. Prove both role boundaries in PR smoke tests.
+3. Merge and prove main `:edge`.
+4. Release immutable v0.3.1.
+5. Update Forge to supply the verification wheel as a CAD-CI dependency.
+6. Resume Forge #537 batch 1.
 
 ## Open issue assessment — 2026-11-20
 
 | Issue | Status | Assessment |
 | --- | --- | --- |
-| #12 Pin CAD verification 0.11.0 and release runtime v0.3.1 | now | Required immutable dependency update for Forge #432 batch 1. |
+| #12 Remove verification library from runtime images and release v0.3.1 | now | Correct the package/runtime ownership boundary before Forge batch 1. |
 
 Immediate chain:
 
-`#12 runtime v0.3.1 -> Forge #432 batch 1`.
+`#12 runtime boundary -> Forge verification-wheel dependency -> #537 batch 1`.
