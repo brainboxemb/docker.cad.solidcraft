@@ -1,0 +1,161 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - 'Dockerfile'
+      - 'versions.env'
+      - 'scripts/**'
+      - '.dockerignore'
+      - '.github/workflows/build.yml'
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - 'versions.env'
+      - 'scripts/**'
+      - '.dockerignore'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: cad-solidcraft-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load versions
+        id: versions
+        shell: bash
+        run: |
+          set -a
+          source versions.env
+          set +a
+
+          echo "runtime=${RUNTIME_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "python_image=${PYTHON_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "solidcraft=${SOLIDCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "cad_verification=${CAD_VERIFICATION_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "cad_verification_commit=${CAD_VERIFICATION_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "cadcraft=${CADCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "cadcraft_sha256=${CADCRAFT_SHA256}" >> "$GITHUB_OUTPUT"
+          echo "pythonscad=${PYTHONSCAD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "pybosl2_commit=${PYBOSL2_COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "cadquery=${CADQUERY_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "build123d=${BUILD123D_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "pyyaml=${PYYAML_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "pillow_spec=${PILLOW_SPEC}" >> "$GITHUB_OUTPUT"
+          echo "trimesh_spec=${TRIMESH_SPEC}" >> "$GITHUB_OUTPUT"
+          echo "scipy_spec=${SCIPY_SPEC}" >> "$GITHUB_OUTPUT"
+          echo "matplotlib_spec=${MATPLOTLIB_SPEC}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            expected="v${RUNTIME_VERSION}"
+            if [[ "${GITHUB_REF_NAME}" != "${expected}" ]]; then
+              echo "ERROR: tag ${GITHUB_REF_NAME} does not match versions.env ${expected}" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/cad-solidcraft
+          tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=tag
+            type=sha,prefix=sha-
+
+      - name: Build runtime
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            PYTHON_IMAGE=${{ steps.versions.outputs.python_image }}
+            RUNTIME_VERSION=${{ steps.versions.outputs.runtime }}
+            SOLIDCRAFT_VERSION=${{ steps.versions.outputs.solidcraft }}
+            CAD_VERIFICATION_VERSION=${{ steps.versions.outputs.cad_verification }}
+            CAD_VERIFICATION_COMMIT=${{ steps.versions.outputs.cad_verification_commit }}
+            CADCRAFT_VERSION=${{ steps.versions.outputs.cadcraft }}
+            CADCRAFT_SHA256=${{ steps.versions.outputs.cadcraft_sha256 }}
+            PYTHONSCAD_VERSION=${{ steps.versions.outputs.pythonscad }}
+            PYBOSL2_COMMIT=${{ steps.versions.outputs.pybosl2_commit }}
+            CADQUERY_VERSION=${{ steps.versions.outputs.cadquery }}
+            BUILD123D_VERSION=${{ steps.versions.outputs.build123d }}
+            PYYAML_VERSION=${{ steps.versions.outputs.pyyaml }}
+            PILLOW_SPEC=${{ steps.versions.outputs.pillow_spec }}
+            TRIMESH_SPEC=${{ steps.versions.outputs.trimesh_spec }}
+            SCIPY_SPEC=${{ steps.versions.outputs.scipy_spec }}
+            MATPLOTLIB_SPEC=${{ steps.versions.outputs.matplotlib_spec }}
+
+      - name: Smoke test runtime
+        shell: bash
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          IMAGE="$(printf '%s\n' "$IMAGE_TAGS" | head -n1)"
+          echo "Testing ${IMAGE}"
+          docker run --rm "${IMAGE}" test-cad-solidcraft-runtime
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          cat > release-notes.md <<EOF
+          SolidCraft CAD runtime ${VERSION}
+
+          Immutable image:
+          ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-solidcraft:${VERSION}
+
+          This release was built and smoke-tested from the matching immutable
+          repository tag.
+          EOF
+
+          if gh release view "${VERSION}" >/dev/null 2>&1; then
+            gh release edit "${VERSION}" \
+              --title "SolidCraft CAD runtime ${VERSION}" \
+              --notes-file release-notes.md
+          else
+            gh release create "${VERSION}" \
+              --verify-tag \
+              --title "SolidCraft CAD runtime ${VERSION}" \
+              --notes-file release-notes.md
+          fi
