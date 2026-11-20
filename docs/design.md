@@ -37,9 +37,14 @@ SolidCraft                trimesh
                           pyBOSL2
                           CadQuery
                           build123d
+                          CADCraft
 ```
 
 Neither role contains `cad_verification`.
+
+CADCraft is installed only in the reference role because it is an independent
+CAD/reference renderer. Consumer repositories provide CADCraft source/command
+data but do not download, pin or install the CADCraft executable themselves.
 
 ## Consumer verification injection
 
@@ -71,6 +76,8 @@ Images expose:
 - `CAD_RUNTIME_VERSION`;
 - `CAD_RUNTIME_ROLE`;
 - role-owned engine versions.
+
+The reference role also exposes `CADCRAFT_VERSION`.
 
 There is intentionally no `CAD_VERIFICATION_VERSION` image metadata.
 

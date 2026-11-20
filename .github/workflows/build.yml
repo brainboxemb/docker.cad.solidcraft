@@ -65,6 +65,9 @@ jobs:
           echo "pybosl2_commit=${PYBOSL2_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "cadquery=${CADQUERY_VERSION}" >> "$GITHUB_OUTPUT"
           echo "build123d=${BUILD123D_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "cadcraft=${CADCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "cadcraft_arch=${CADCRAFT_ARCH}" >> "$GITHUB_OUTPUT"
+          echo "cadcraft_sha256=${CADCRAFT_ARCHIVE_SHA256}" >> "$GITHUB_OUTPUT"
           echo "pyyaml=${PYYAML_VERSION}" >> "$GITHUB_OUTPUT"
           echo "pillow_spec=${PILLOW_SPEC}" >> "$GITHUB_OUTPUT"
           echo "trimesh_spec=${TRIMESH_SPEC}" >> "$GITHUB_OUTPUT"
@@ -119,6 +122,9 @@ jobs:
             PYBOSL2_COMMIT=${{ steps.versions.outputs.pybosl2_commit }}
             CADQUERY_VERSION=${{ steps.versions.outputs.cadquery }}
             BUILD123D_VERSION=${{ steps.versions.outputs.build123d }}
+            CADCRAFT_VERSION=${{ steps.versions.outputs.cadcraft }}
+            CADCRAFT_ARCH=${{ steps.versions.outputs.cadcraft_arch }}
+            CADCRAFT_ARCHIVE_SHA256=${{ steps.versions.outputs.cadcraft_sha256 }}
             PYYAML_VERSION=${{ steps.versions.outputs.pyyaml }}
             PILLOW_SPEC=${{ steps.versions.outputs.pillow_spec }}
             TRIMESH_SPEC=${{ steps.versions.outputs.trimesh_spec }}

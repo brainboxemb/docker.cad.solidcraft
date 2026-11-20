@@ -13,7 +13,7 @@ ghcr.io/brainboxemb/cad-reference:<version>
 `cad-solidcraft` is the lightweight SolidCraft model/visual verification
 runtime. It deliberately excludes the trimesh/scipy/matplotlib geometry stack.
 `cad-reference` contains that geometry stack together with the independent
-PythonSCAD, pyBOSL2, CadQuery and build123d reference engines.
+PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft reference engines.
 
 Both images use the same SemVer release tag. Current `main` may publish
 `:edge` for pre-release validation.

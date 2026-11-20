@@ -48,7 +48,7 @@ not transfer code ownership to this repository.
 
 Role images must stay separated by responsibility. `cad-solidcraft` contains
 SolidCraft plus shared verification dependencies. `cad-reference` contains
-PythonSCAD, pyBOSL2, CadQuery and build123d plus shared verification
+PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft plus shared verification
 dependencies. Do not add a tool to both roles merely because an older
 monolithic image contained it.
 

@@ -53,9 +53,18 @@ if command -v solidcraft-cli >/dev/null 2>&1; then
     exit 1
 fi
 
-if command -v cadcraft-cli >/dev/null 2>&1; then
-    echo "unexpected cadcraft-cli in reference runtime" >&2
+if ! command -v cadcraft-cli >/dev/null 2>&1; then
+    echo "missing cadcraft-cli in reference runtime" >&2
     exit 1
 fi
+
+CADCRAFT_OUTPUT="$(cadcraft-cli --version)"
+case "$CADCRAFT_OUTPUT" in
+    *"${CADCRAFT_VERSION}"*) ;;
+    *)
+        echo "cadcraft-cli: expected version ${CADCRAFT_VERSION}, got: ${CADCRAFT_OUTPUT}" >&2
+        exit 1
+        ;;
+esac
 
 echo "Reference runtime smoke test: PASS"
