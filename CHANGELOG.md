@@ -4,10 +4,13 @@
 
 ### Changed
 
-- Pin released `lib.py.cad.verification` 0.12.0 at exact commit
-  `1254eca6681faaff62b9605fbb5a25178ab71f9a`.
-- Preserve the v0.3.0 runtime-role split, dependency composition and tool
-  versions unchanged.
+- Remove `lib.py.cad.verification` from both runtime images.
+- Remove verification version/commit metadata from the runtime release.
+- Consumers now supply the exact released verification package separately at
+  execution time.
+- Require both role smoke tests to prove that `cad_verification` is absent.
+- Preserve all SolidCraft and independent reference-engine versions from
+  v0.3.0.
 
 ## v0.3.0
 
