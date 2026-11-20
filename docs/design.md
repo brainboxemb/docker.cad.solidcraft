@@ -6,94 +6,126 @@
 docker.cad.solidcraft
   versions.env
   Dockerfile
-  runtime smoke tests
+  role-specific smoke tests
   build/release workflows
-  -> ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z
+       |
+       +--> ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z
+       |
+       +--> ghcr.io/brainboxemb/cad-reference:vX.Y.Z
 
-consumer repository
-  -> selects one immutable vX.Y.Z image
-  -> supplies its own source/model verification inputs
+consumer repositories
+  -> explicitly select the immutable role image they need
 ```
 
-The runtime repository owns packaging. Consumers own project behavior.
+The repository owns packaging and version pins. Consumers own project/model
+behavior.
 
-## Version and release flow
+## Release model
+
+One SemVer release publishes both role images.
 
 ```text
 versions.env
-  RUNTIME_VERSION=0.1.0
+  RUNTIME_VERSION=0.2.0
        |
        v
 branch / PR
-  build image locally
-  smoke test
+  build target solidcraft
+  build target reference
+  smoke-test both
        |
        v
 main
-  publish/test :edge
+  publish/test cad-solidcraft:edge
+  publish/test cad-reference:edge
        |
        v
-release.yml
-  validate requested v0.1.0 + exact verified commit
-  create annotated v0.1.0 tag
-  dispatch build.yml on v0.1.0
-       |
-       v
-build.yml
-  publish/test ghcr.io/brainboxemb/cad-solidcraft:v0.1.0
-  create GitHub Release
+release v0.2.0
+  validate one exact green commit
+  create immutable repository tag
+  build/publish/test:
+    cad-solidcraft:v0.2.0
+    cad-reference:v0.2.0
+  create one GitHub Release listing both images
 ```
 
-The release version is explicit human-readable state. It is not derived from a
-content hash or timestamp.
-
-## Runtime composition
-
-The initial image follows the proven Forge runtime composition:
+## Docker stage model
 
 ```text
-SolidCraft CAD runtime
-  SolidCraft
-  CADCraft
-  released CAD verification library
-  PythonSCAD
-  pyBOSL2
-  CadQuery
-  build123d
-  trimesh / matplotlib / Pillow / scipy / PyYAML
-  required system libraries
+python base
+   |
+   v
+common
+  system libraries common to verification
+  released cad-verification
+  PyYAML/Pillow/trimesh/scipy/matplotlib
+   |
+   +-----------------------+
+   |                       |
+   v                       v
+solidcraft              reference
+SolidCraft              PythonSCAD
+                        pyBOSL2
+                        CadQuery
+                        build123d venv
 ```
 
-Preinstallation is an execution-efficiency choice; library code ownership stays
-with each library repository.
+The `solidcraft` target must never inherit the heavy reference engines.
+The `reference` target must never inherit SolidCraft.
 
-## Image tags
+CADCraft is omitted from the v0.2.0 stage graph because no current consumer
+dependency has been demonstrated.
 
-`:edge` is mutable and development-only.
+## Role metadata
 
-`vX.Y.Z` is immutable and is the normal consumer contract.
+Every role exposes:
 
-Consumers should never derive a runtime tag from a Dockerfile hash or Git
-commit automatically.
+- `CAD_RUNTIME_VERSION`;
+- `CAD_RUNTIME_ROLE`;
+- `CAD_VERIFICATION_VERSION`.
+
+Role-specific version variables are exposed only in the image that owns them.
+
+## Smoke-test model
+
+The repository owns two executable tests:
+
+```text
+test-cad-solidcraft-runtime
+test-cad-reference-runtime
+```
+
+The tests verify both presence and deliberate absence of role-inappropriate
+tools. This prevents future Dockerfile refactors from silently re-bloating the
+SolidCraft image.
 
 ## CI architecture
 
+A two-entry build matrix is used:
+
 ```text
-pull request
-  -> build image locally
-  -> smoke test
-  -> no publish
+role=solidcraft
+  target=solidcraft
+  package=cad-solidcraft
+  smoke=test-cad-solidcraft-runtime
 
-main
-  -> build image
-  -> publish :edge
-  -> smoke test
-
-vX.Y.Z
-  -> build image
-  -> publish :vX.Y.Z
-  -> smoke test
-  -> create GitHub Release
+role=reference
+  target=reference
+  package=cad-reference
+  smoke=test-cad-reference-runtime
 ```
 
-No GitHub Actions cache transport is used.
+PRs load each built image locally and smoke-test it. Main and release tags push
+each role package, then pull/run that exact published tag for smoke testing.
+
+The workflow does not use GitHub Actions cache transport.
+
+## Consumer migration
+
+Forge first moves only the one-model `simple-box` proof:
+
+- model verification -> `cad-solidcraft:v0.2.0`;
+- independent reference verification -> `cad-reference:v0.2.0`.
+
+Only after clean-pull and one-model timing are understood may the broader model
+set resume.
