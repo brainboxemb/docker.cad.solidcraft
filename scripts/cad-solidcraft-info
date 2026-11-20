@@ -1,13 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
-echo "SolidCraft CAD runtime ${CAD_SOLIDCRAFT_RUNTIME_VERSION:-unknown}"
+echo "CAD runtime role: ${CAD_RUNTIME_ROLE:-unknown}"
+echo "CAD runtime version: ${CAD_RUNTIME_VERSION:-unknown}"
 echo "SolidCraft: ${SOLIDCRAFT_VERSION:-unknown}"
 echo "CAD verification: ${CAD_VERIFICATION_VERSION:-unknown}"
-echo "CADCraft: ${CADCRAFT_VERSION:-unknown}"
-echo "PythonSCAD: ${PYTHONSCAD_VERSION:-unknown}"
-echo "CadQuery: ${CADQUERY_VERSION:-unknown}"
-echo "build123d: ${BUILD123D_VERSION:-unknown}"
 
 solidcraft-cli --version
-cadcraft-cli --version
