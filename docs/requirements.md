@@ -32,14 +32,24 @@ It contains only what normal SolidCraft-backed model/visual verification needs:
 
 - SolidCraft;
 - released `lib.py.cad.verification`;
-- shared Python/system dependencies required by that verification path.
+- PyYAML;
+- Pillow;
+- shared system dependencies required by SolidCraft.
 
 It must not contain:
 
+- trimesh;
+- scipy;
+- matplotlib;
 - PythonSCAD;
 - pyBOSL2;
 - CadQuery;
 - build123d.
+
+The verification distribution may declare optional geometry/visual dependencies
+for its complete library surface. The SolidCraft image installs that
+distribution with dependency resolution disabled and installs only the runtime
+dependencies owned by this role.
 
 ### Reference role
 
@@ -56,6 +66,10 @@ It contains the independent reference engines used by Forge:
 - CadQuery;
 - build123d;
 - released `lib.py.cad.verification`;
+- Pillow;
+- trimesh;
+- scipy;
+- matplotlib;
 - shared Python/system dependencies required by reference validation/export.
 
 It must not contain SolidCraft merely for packaging convenience.
@@ -97,7 +111,10 @@ SolidCraft smoke testing proves:
 
 - `solidcraft-cli` starts and reports a version;
 - the configured CAD-verification distribution is installed at the exact pin;
-- the Python dependencies required for normal SolidCraft verification import;
+- the public SolidCraft verification API imports without eagerly loading
+  geometry or visual implementation modules;
+- PyYAML and Pillow are present;
+- trimesh, scipy and matplotlib are absent;
 - reference engines are absent.
 
 Reference smoke testing proves:
@@ -119,5 +136,7 @@ a correctness gate against registry/network variance.
 
 ## Consumer migration
 
-Consumers remain on v0.1.0 until v0.2.0 has been built, independently
-smoke-tested and released. Migration is then explicit and consumer-owned.
+Every runtime-content change is released under a new immutable SemVer tag.
+Consumers move from one released role version to the next explicitly after both
+role images have been independently smoke-tested and the relevant clean-pull
+evidence has been recorded.

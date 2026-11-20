@@ -22,11 +22,11 @@ behavior.
 
 ## Release model
 
-One SemVer release publishes both role images.
+One SemVer release publishes both role images from one exact verified commit.
 
 ```text
 versions.env
-  RUNTIME_VERSION=0.2.0
+  RUNTIME_VERSION=X.Y.Z
        |
        v
 branch / PR
@@ -40,41 +40,50 @@ main
   publish/test cad-reference:edge
        |
        v
-release v0.2.0
-  validate one exact green commit
+release vX.Y.Z
+  validate exact green commit
   create immutable repository tag
-  build/publish/test:
-    cad-solidcraft:v0.2.0
-    cad-reference:v0.2.0
-  create one GitHub Release listing both images
+  build/publish/test both role images
+  create one GitHub Release
 ```
 
 ## Docker stage model
+
+The common stage contains only dependencies genuinely shared by both roles.
 
 ```text
 python base
    |
    v
 common
-  system libraries common to verification
-  released cad-verification
-  PyYAML/Pillow/trimesh/scipy/matplotlib
+  shared system libraries
+  PyYAML
+  released cad-verification --no-deps
    |
-   +-----------------------+
-   |                       |
-   v                       v
-solidcraft              reference
-SolidCraft              PythonSCAD
-                        pyBOSL2
-                        CadQuery
-                        build123d venv
+   +----------------------------+
+   |                            |
+   v                            v
+solidcraft                   reference
+Pillow                       Pillow
+SolidCraft                   trimesh
+                             scipy
+                             matplotlib
+                             PythonSCAD
+                             pyBOSL2
+                             CadQuery
+                             build123d venv
 ```
 
-The `solidcraft` target must never inherit the heavy reference engines.
-The `reference` target must never inherit SolidCraft.
+The SolidCraft role intentionally does not inherit the geometry/reference
+Python stack. Released `lib.py.cad.verification` keeps its complete package
+metadata, while this runtime owns the explicit dependency subset appropriate to
+each role.
 
-CADCraft is omitted from the v0.2.0 stage graph because no current consumer
-dependency has been demonstrated.
+The `solidcraft` target must never contain reference engines or the
+trimesh/scipy/matplotlib geometry stack. The `reference` target must never
+inherit SolidCraft.
+
+CADCraft remains omitted unless a concrete current consumer requires it.
 
 ## Role metadata
 
@@ -95,13 +104,27 @@ test-cad-solidcraft-runtime
 test-cad-reference-runtime
 ```
 
-The tests verify both presence and deliberate absence of role-inappropriate
-tools. This prevents future Dockerfile refactors from silently re-bloating the
-SolidCraft image.
+The SolidCraft smoke test validates both the installed tools and the import
+boundary:
+
+```text
+from cad_verification import SolidCraftVerification,
+                             run_solidcraft_verification
+  -> cad_verification.geometry not loaded
+  -> cad_verification.visual not loaded
+  -> trimesh/scipy/matplotlib distributions absent
+```
+
+Pillow stays in the SolidCraft role because that role also owns normal visual
+verification when a consumer requests the public visual APIs.
+
+The reference smoke test retains the complete geometry/reference import checks.
+Presence and deliberate absence checks protect role boundaries from future
+Dockerfile regressions.
 
 ## CI architecture
 
-A two-entry build matrix is used:
+A two-entry build matrix remains authoritative:
 
 ```text
 role=solidcraft
@@ -116,16 +139,14 @@ role=reference
 ```
 
 PRs load each built image locally and smoke-test it. Main and release tags push
-each role package, then pull/run that exact published tag for smoke testing.
+each role package, then clean-pull/run that exact published tag.
 
 The workflow does not use GitHub Actions cache transport.
 
-## Consumer migration
+## Performance evidence
 
-Forge first moves only the one-model `simple-box` proof:
+Clean pull timing is recorded separately for each published role. Registry
+variance means one measurement is evidence rather than a correctness threshold.
 
-- model verification -> `cad-solidcraft:v0.2.0`;
-- independent reference verification -> `cad-reference:v0.2.0`.
-
-Only after clean-pull and one-model timing are understood may the broader model
-set resume.
+The normal Forge critical path uses only `cad-solidcraft`. Reference-image size
+or pull variance must not affect a normal model-verification PR.

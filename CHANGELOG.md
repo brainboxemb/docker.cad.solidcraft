@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.3.0
+
+### Changed
+
+- Pin released `lib.py.cad.verification` 0.10.1 with lazy optional public
+  imports.
+- Install the verification distribution with `--no-deps` and make runtime
+  dependencies explicit per role.
+- Remove trimesh, scipy and matplotlib from `cad-solidcraft`.
+- Keep PyYAML and Pillow in `cad-solidcraft` for normal model/visual
+  verification.
+- Keep the existing geometry/matplotlib and independent reference stack in
+  `cad-reference`.
+- Strengthen the SolidCraft smoke test to prove the public SolidCraft API does
+  not eagerly load geometry/visual modules and that the heavy geometry stack is
+  absent.
+
+
 ## v0.2.0
 
 ### Changed
