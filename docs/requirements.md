@@ -2,11 +2,13 @@
 
 ## Ownership
 
-`docker.cad.solidcraft` owns the reusable runtime packages used by SolidCraft
-model verification and independent reference verification.
+`docker.cad.solidcraft` owns reusable CAD engine/runtime packages only.
 
 Consumer repositories select released immutable images. They do not own the
-Dockerfile, dependency pins, runtime package composition or publication flow.
+Dockerfile, engine pins, runtime package composition or publication flow.
+
+Verification policy and verification-library versions are consumer/CI
+dependencies and are deliberately not baked into these runtime images.
 
 ## Versioning
 
@@ -15,128 +17,88 @@ One repository release version governs all role images.
 - `versions.env::RUNTIME_VERSION` is the release source of truth.
 - Repository release tags use `vX.Y.Z`.
 - Every role image published by that release uses the same immutable `vX.Y.Z`.
-- `:edge` represents current `main` for each role.
-- Existing release tags and image tags are never overwritten.
+- `:edge` represents current `main`.
+- Existing release/image tags are never overwritten.
 
-## Runtime roles
+## SolidCraft role
 
-### SolidCraft role
-
-Published as:
-
-```text
-ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z
-```
-
-It contains only what normal SolidCraft-backed model/visual verification needs:
+`ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z` contains:
 
 - SolidCraft;
-- released `lib.py.cad.verification`;
 - PyYAML;
 - Pillow;
-- shared system dependencies required by SolidCraft.
+- SolidCraft system dependencies.
 
 It must not contain:
 
-- trimesh;
-- scipy;
-- matplotlib;
-- PythonSCAD;
-- pyBOSL2;
-- CadQuery;
-- build123d.
+- `lib.py.cad.verification` / `cad_verification`;
+- trimesh, scipy or matplotlib;
+- PythonSCAD, pyBOSL2, CadQuery or build123d.
 
-The verification distribution may declare optional geometry/visual dependencies
-for its complete library surface. The SolidCraft image installs that
-distribution with dependency resolution disabled and installs only the runtime
-dependencies owned by this role.
+The consumer supplies the exact released verification package at execution
+time, for example as a mounted wheel on `PYTHONPATH`.
 
-### Reference role
+## Reference role
 
-Published as:
-
-```text
-ghcr.io/brainboxemb/cad-reference:vX.Y.Z
-```
-
-It contains the independent reference engines used by Forge:
+`ghcr.io/brainboxemb/cad-reference:vX.Y.Z` contains:
 
 - PythonSCAD;
 - pyBOSL2;
 - CadQuery;
 - build123d;
-- released `lib.py.cad.verification`;
 - Pillow;
 - trimesh;
 - scipy;
 - matplotlib;
-- shared Python/system dependencies required by reference validation/export.
+- PyYAML;
+- required system dependencies.
 
-It must not contain SolidCraft merely for packaging convenience.
+It must not contain:
 
-### CADCraft
+- SolidCraft;
+- `lib.py.cad.verification` / `cad_verification`.
 
-CADCraft is not part of either v0.2.0 role unless a concrete current consumer
-requires it. Historical inclusion in v0.1.0 is not sufficient justification.
-If a future role needs CADCraft, that dependency must be designed and tested
-explicitly.
+The consumer supplies the exact released verification package at execution
+time.
 
-## Shared layers
+## Dependency boundary
 
-The Dockerfile may share build stages/layers between roles only where the
-dependencies are genuinely common. Shared stages must not pull heavy
-reference-only dependencies into the SolidCraft image.
+A verification-library release must not require a Docker runtime release.
+
+Likewise, a model-local `verification/verify.py` change must never require a
+runtime rebuild.
+
+A runtime release is required only when CAD engine versions, system/stable
+runtime dependencies or image composition change.
 
 ## Build and publication
 
-- pull requests build and smoke-test both role images locally without publish;
+- pull requests build and smoke-test both images without publishing;
 - `main` publishes and smoke-tests both `:edge` images;
-- immutable `vX.Y.Z` tags publish and smoke-test both matching role images;
-- the release workflow validates one requested version and exact commit;
-- the normal build workflow remains authoritative for both image packages;
-- release-tag builds create one GitHub Release describing both immutable images.
+- immutable `vX.Y.Z` tags publish and smoke-test both images;
+- the release workflow validates exact version and commit;
+- no GitHub Actions cache transport is used for Docker layers.
 
-## Cache policy
+## Smoke tests
 
-GitHub Actions cache transport is not used for Docker layer reuse.
+SolidCraft smoke proves:
 
-The build workflow must not use `actions/cache` or Buildx `type=gha`
-cache import/export.
-
-## Verification
-
-Each role has an independent smoke test.
-
-SolidCraft smoke testing proves:
-
-- `solidcraft-cli` starts and reports a version;
-- the configured CAD-verification distribution is installed at the exact pin;
-- the public SolidCraft verification API imports without eagerly loading
-  geometry or visual implementation modules;
+- `solidcraft-cli` starts;
 - PyYAML and Pillow are present;
-- trimesh, scipy and matplotlib are absent;
-- reference engines are absent.
+- `cad_verification` is absent;
+- heavy geometry/reference modules are absent.
 
-Reference smoke testing proves:
+Reference smoke proves:
 
-- PythonSCAD imports;
-- pyBOSL2 imports;
-- CadQuery imports at the exact pin;
-- build123d imports from its isolated environment;
-- the configured CAD-verification distribution is installed at the exact pin;
+- PythonSCAD, pyBOSL2, CadQuery and build123d work;
+- Pillow, trimesh, scipy and matplotlib are present;
+- `cad_verification` is absent;
 - SolidCraft is absent.
-
-## Performance acceptance
-
-Clean pull timing is measured on GitHub-hosted runners after immutable release.
-
-For the SolidCraft role, the engineering target is approximately <=20 seconds
-under comparable external registry conditions. The measurement is evidence, not
-a correctness gate against registry/network variance.
 
 ## Consumer migration
 
-Every runtime-content change is released under a new immutable SemVer tag.
-Consumers move from one released role version to the next explicitly after both
-role images have been independently smoke-tested and the relevant clean-pull
-evidence has been recorded.
+Runtime releases and verification-library releases are independent.
+
+Consumers update an immutable runtime image only when runtime contents change.
+Consumers update their verification dependency pin independently when a
+verification-library release is required.
