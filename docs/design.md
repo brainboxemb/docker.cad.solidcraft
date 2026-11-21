@@ -87,11 +87,17 @@ Docker smoke tests prove runtime composition plus narrow engine contracts that
 justify a runtime-version upgrade. They require `cad_verification` to be
 absent.
 
-For SolidCraft upgrades, the smoke must prove the exact CLI version and may
-include a minimal native command regression when that regression is the reason
-for the release. Runtime v0.3.3 therefore replays the upstream #15857 shape:
-one model parameter drives the width of a native Slot. This remains an engine
-smoke, not model-specific Forge verification.
+For SolidCraft upgrades, the smoke proves the exact CLI version and the narrow
+native contracts that justify consumer compatibility. The current Slot contract
+set includes the upstream #15857 shape (one model parameter drives native Slot
+width), the straight-Slot dimensioned length path, and the numeric-only direct
+Slot-point boundary. These are engine/runtime smokes, not model-specific Forge
+verification.
+
+The owner repository qualifies the current stable upstream release first.
+Consumer repositories may only derive version-pinned reference documentation
+from that qualified immutable runtime; a hand-authored migration note is not a
+runtime command snapshot.
 
 Consumer integration tests prove that a separately supplied released
 verification wheel works with the selected runtime image.
