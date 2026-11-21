@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.3
+
+### Changed
+
+- Upgrade SolidCraft from 0.42.0 to 0.43.0 in the `cad-solidcraft` role.
+- Keep all independent reference-engine pins unchanged.
+- Strengthen the SolidCraft smoke to require the exact pinned CLI version.
+- Add a native parameter-driven Slot-width replay smoke for upstream
+  SolidCraft issue #15857.
+
 ## v0.3.2
 
 ### Changed
