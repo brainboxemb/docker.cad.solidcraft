@@ -53,6 +53,26 @@ Selecting the first release that contains one required fix is not by itself a
 reason to remain behind current stable. Any deliberate older pin must document
 and test the incompatibility that prevents current stable adoption.
 
+## Known upstream 0.45 risk
+
+Upstream `tangency-labs/solidcraft#18848` reports a regression introduced after
+0.43.0 and still present in 0.45.0 final: one specific Autodesk Inventor STEP
+import followed by a thin join extrusion fails a kernel coincident-edge check.
+The reporter cannot publish the source STEP, so the owner repository cannot add
+that exact case to its deterministic smoke suite.
+
+This is **not** evidence that the Forge-required Slot contracts fail on 0.45.0:
+the official 0.45.0 binary passes the exact-version, command-registry,
+parameter-driven Slot-width, dimensioned straight-Slot-length and numeric
+direct-point boundary smokes in PR #22.
+
+It is nevertheless an explicit upstream limitation of the candidate runtime.
+Before release, treat 0.45.0 as qualified for the contracts actually covered by
+the owner smoke, not as a claim that every SolidCraft workflow is regression
+free. Current Forge does not use STEP import as a model-authoring input path;
+if that becomes a required runtime contract, add a reproducible public case or
+hold the affected feature behind a separately qualified engine version.
+
 ## Required release invariants
 
 The next runtime release must:
