@@ -31,7 +31,21 @@ assert PIL
 assert yaml
 PY
 
-solidcraft-cli --version >/dev/null
+solidcraft_version="$(solidcraft-cli --version)"
+printf '%s\n' "$solidcraft_version"
+printf '%s\n' "$solidcraft_version" | grep -F "$SOLIDCRAFT_VERSION" >/dev/null
+
+slot_smoke="$(mktemp)"
+cat >"$slot_smoke" <<'JSON'
+{"commands":[
+{"command":"parameters.add","params":{"name":"slot_w","expression":"6 mm"}},
+{"command":"sketch.create","params":{"plane":"XY","name":"SlotSmoke"}},
+{"command":"sketch.slot.center_to_center","params":{"p0":[0,0],"p1":[30,0],"width":"slot_w"}},
+{"command":"sketch.finish","params":{}}
+]}
+JSON
+solidcraft-cli run "$slot_smoke" --quiet
+rm -f "$slot_smoke"
 
 if command -v cadcraft-cli >/dev/null 2>&1; then
     echo "unexpected cadcraft-cli in SolidCraft runtime" >&2
