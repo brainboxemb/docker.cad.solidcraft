@@ -83,8 +83,15 @@ There is intentionally no `CAD_VERIFICATION_VERSION` image metadata.
 
 ## Smoke boundary
 
-Docker smoke tests prove only runtime composition. They require
-`cad_verification` to be absent.
+Docker smoke tests prove runtime composition plus narrow engine contracts that
+justify a runtime-version upgrade. They require `cad_verification` to be
+absent.
+
+For SolidCraft upgrades, the smoke must prove the exact CLI version and may
+include a minimal native command regression when that regression is the reason
+for the release. Runtime v0.3.3 therefore replays the upstream #15857 shape:
+one model parameter drives the width of a native Slot. This remains an engine
+smoke, not model-specific Forge verification.
 
 Consumer integration tests prove that a separately supplied released
 verification wheel works with the selected runtime image.
