@@ -20,6 +20,16 @@ One repository release version governs all role images.
 - `:edge` represents current `main`.
 - Existing release/image tags are never overwritten.
 
+## Engine release selection
+
+When deliberately upgrading a CAD engine, qualify the current stable upstream
+release available when the work starts. Record its exact tag/commit provenance.
+
+An older engine release may be selected only when the current stable release
+has a concrete, reproducible incompatibility. That exception and its proof must
+be recorded in the owner-repository issue. The first release containing one
+required fix is not by itself the preferred target.
+
 ## SolidCraft role
 
 `ghcr.io/brainboxemb/cad-solidcraft:vX.Y.Z` contains:
