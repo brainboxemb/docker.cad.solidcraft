@@ -2,64 +2,55 @@
 
 ## Current state
 
-Runtime v0.3.2 is released from main commit
-`7c0a2b38abeb2d8cb9cff45305c4299e24040267`.
+Runtime v0.3.3 is released from main commit
+`344cad2bffe7ee6133880b0941bdf131b01b7a71`.
 
 Current role boundary:
 
 - neither runtime embeds `lib.py.cad.verification`;
-- `cad-solidcraft` is the lightweight SolidCraft role;
+- `cad-solidcraft` is the lightweight SolidCraft role and contains
+  SolidCraft 0.43.0;
 - `cad-reference` contains PythonSCAD, pyBOSL2, CadQuery, build123d and
   CADCraft 0.20.1;
 - consumers supply the exact verification package separately.
 
-The current released SolidCraft pin is 0.42.0.
-
-Forge #355 exposed upstream SolidCraft issue #15857 against that released
-runtime: a native Slot width supplied as an expression is rejected with
-`width must be positive`, even though the symbolic value is positive.
-
-Upstream SolidCraft v0.43.0 contains the #15857 fix and is the smallest stable
-release inspected here that does so.
+#17 is complete. The v0.3.3 SolidCraft-role smoke proves the exact 0.43.0 CLI
+and replays a native Slot whose width is driven by a model parameter, covering
+upstream SolidCraft issue #15857. Both role builds passed again on the exact
+main commit before the immutable release was published.
 
 ## Current goal
 
-Complete #17 and release runtime v0.3.3:
+There is no unfinished runtime implementation issue after v0.3.3.
 
-- update only the SolidCraft engine pin from 0.42.0 to 0.43.0;
-- keep all independent reference-engine pins unchanged;
-- retain the existing role/image ownership boundary;
-- add a smoke reproducing #15857 with a parameter-driven native Slot width;
-- prove the exact SolidCraft CLI version;
-- keep both role images free of `cad_verification`.
+The active dependency has moved to the consumer repository:
 
-## Required proof
+1. Forge #612 adopts
+   `ghcr.io/brainboxemb/cad-solidcraft:v0.3.3` and
+   `ghcr.io/brainboxemb/cad-reference:v0.3.3`;
+2. Forge updates its tested SolidCraft target to 0.43.0;
+3. Forge #355 reruns the native parametric Slot qualification against that
+   immutable runtime.
 
-- `cad-solidcraft` reports SolidCraft 0.43.0;
-- a script that adds `slot_w`, creates a native Slot with
-  `"width":"slot_w"`, and finishes the sketch replays successfully;
-- all existing SolidCraft-role negative dependency checks still pass;
-- the reference role retains its existing engine versions and smoke tests;
-- both PR role-image builds pass;
-- main `:edge` build passes;
-- immutable v0.3.3 is published from the exact green main commit.
+Any new runtime work must start with a new owner-repository issue and must not
+be inferred from consumer implementation changes.
 
-## Execution order
+## Required release invariants
 
-1. Update plan/requirements/design for #17.
-2. Bump runtime to 0.3.3 and SolidCraft to 0.43.0.
-3. Add the exact-version and parameter-driven native Slot smoke.
-4. Prove both role images in PR.
-5. Merge and prove main `:edge`.
-6. Release immutable v0.3.3.
-7. Update Forge to consume the released runtime and rerun #355 qualification.
+Future runtime releases continue to require:
+
+- one exact `versions.env` source of truth;
+- both role images built and smoke-tested on PR;
+- green main `:edge` from the exact release commit;
+- immutable `vX.Y.Z` tag and matching role images;
+- no `cad_verification` embedded in either role;
+- no GitHub Actions cache transport for Docker layers;
+- downstream consumers move to a new immutable release explicitly.
 
 ## Open issue assessment — 2026-11-21
 
-| Issue | Status | Assessment |
-| --- | --- | --- |
-| #17 Upgrade cad-solidcraft runtime to SolidCraft 0.43.0 | now | Minimal owner-repository runtime update required by Forge #355; prove upstream #15857 is fixed in the released image. |
+No runtime implementation issues are open after #17.
 
-Immediate chain:
+Immediate external handoff:
 
-`#17 runtime 0.43.0 -> v0.3.3 -> Forge #355 consumes released runtime`.
+`runtime v0.3.3 complete -> Forge #612 -> Forge #355 qualification`.
