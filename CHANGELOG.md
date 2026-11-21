@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased (v0.3.4)
+
+### Changed
+
+- Upgrade the active SolidCraft runtime target from the superseded 0.43.0
+  baseline to current stable 0.45.0.
+- Keep all independent reference-engine pins unchanged.
+- Qualify the exact 0.45.0 CLI plus Forge-relevant native Slot contracts in the
+  runtime smoke before consumer adoption.
+- Define current-stable-first engine selection; older pins now require a
+  documented reproducible incompatibility with current stable.
+
 ## v0.3.3
 
 ### Changed
