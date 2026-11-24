@@ -1406,8 +1406,7 @@ with tempfile.TemporaryDirectory(prefix="hub75-history-") as directory:
 
 
 def box_cylinder_timing_case(label, cylinder_before_save):
-    case = root / label
-    case.mkdir()
+    case = Path(tempfile.mkdtemp(prefix=f"{label}-"))
     p1 = case / "phase1.json"
     p1_results = case / "phase1-results.json"
     stage1 = case / "stage1.sc"
