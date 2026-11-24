@@ -107,14 +107,15 @@ if solidcraft-cli run "$plain_point_smoke" --quiet >/dev/null 2>&1; then
 fi
 rm -f "$plain_point_smoke"
 
-component_history_script="$(mktemp --suffix=.json)"
-component_history_results="$(mktemp --suffix=.json)"
-component_history_stage="$(mktemp --suffix=.sc)"
-component_move_script="$(mktemp --suffix=.json)"
+component_phase1_script="$(mktemp --suffix=.json)"
+component_phase2_script="$(mktemp --suffix=.json)"
+component_phase3_script="$(mktemp --suffix=.json)"
+component_stage1="$(mktemp --suffix=.sc)"
+component_stage2="$(mktemp --suffix=.sc)"
 component_design="$(mktemp --suffix=.sc)"
 component_cylinder_png="$(mktemp --suffix=.png)"
 
-cat >"$component_history_script" <<'JSON'
+cat >"$component_phase1_script" <<'JSON'
 {
   "commands": [
     {
@@ -227,7 +228,14 @@ cat >"$component_history_script" <<'JSON'
       "params": {
         "body": "Hub75HistoryPanel"
       }
-    },
+    }
+  ]
+}
+JSON
+
+cat >"$component_phase2_script" <<'JSON'
+{
+  "commands": [
     {
       "command": "sketch.create",
       "params": {
@@ -1059,90 +1067,115 @@ cat >"$component_history_script" <<'JSON'
       "params": {
         "component": "Hub75HistoryPanel"
       }
+    },
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 2,
+        "translate": [
+          0,
+          0,
+          160
+        ],
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "angle": "90 deg",
+        "move_grounded": true
+      }
     }
   ]
 }
 JSON
 
-solidcraft-cli run "$component_history_script" \
-    --save "$component_history_stage" \
-    --results \
-    --json-out "$component_history_results" \
-    --quiet
-
-occurrences="$(
-python - "$component_history_results" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1], encoding="utf-8") as handle:
-    result = json.load(handle)
-rows = result.get("results", result) if isinstance(result, dict) else result
-occurrences = [
-    row["occurrence"]
-    for row in rows
-    if isinstance(row, dict)
-    and "component" in row
-    and "occurrence" in row
-]
-if len(occurrences) != 5:
-    raise SystemExit(
-        "expected exactly five HUB75-history occurrences; "
-        f"got {occurrences}"
-    )
-print(" ".join(str(value) for value in occurrences))
-PY
-)"
-
-set -- $occurrences
-if [ "$#" -ne 5 ]; then
-    echo "expected five occurrence ids, got: $occurrences" >&2
-    exit 1
-fi
-occurrence_1="$1"
-occurrence_2="$2"
-occurrence_3="$3"
-occurrence_4="$4"
-occurrence_5="$5"
-
-cat >"$component_move_script" <<JSON
-{"commands":[
-  {"command":"occurrence.move","params":{
-    "occurrence":${occurrence_1},
-    "translate":[0,0,160],
-    "axis":[1,0,0],
-    "angle":"90 deg",
-    "move_grounded":true
-  }},
-  {"command":"occurrence.move","params":{
-    "occurrence":${occurrence_2},
-    "translate":[-320,0,160],
-    "axis":[1,0,0],
-    "angle":"90 deg"
-  }},
-  {"command":"occurrence.move","params":{
-    "occurrence":${occurrence_3},
-    "translate":[-160,0,160],
-    "axis":[0,1,-1],
-    "angle":"180 deg"
-  }},
-  {"command":"occurrence.move","params":{
-    "occurrence":${occurrence_4},
-    "translate":[160,0,160],
-    "axis":[0,1,-1],
-    "angle":"180 deg"
-  }},
-  {"command":"occurrence.move","params":{
-    "occurrence":${occurrence_5},
-    "translate":[320,0,160],
-    "axis":[1,0,0],
-    "angle":"90 deg"
-  }}
-]}
+cat >"$component_phase3_script" <<'JSON'
+{
+  "commands": [
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 48,
+        "translate": [
+          -320,
+          0,
+          160
+        ],
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "angle": "90 deg"
+      }
+    },
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 49,
+        "translate": [
+          -160,
+          0,
+          160
+        ],
+        "axis": [
+          0,
+          1,
+          -1
+        ],
+        "angle": "180 deg"
+      }
+    },
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 50,
+        "translate": [
+          160,
+          0,
+          160
+        ],
+        "axis": [
+          0,
+          1,
+          -1
+        ],
+        "angle": "180 deg"
+      }
+    },
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 51,
+        "translate": [
+          320,
+          0,
+          160
+        ],
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "angle": "90 deg"
+      }
+    }
+  ]
+}
 JSON
 
-solidcraft-cli run "$component_move_script" \
-    --in "$component_history_stage" \
+solidcraft-cli run "$component_phase1_script" \
+    --save "$component_stage1" \
+    --quiet
+
+solidcraft-cli run "$component_phase2_script" \
+    --in "$component_stage1" \
+    --save "$component_stage2" \
+    --quiet
+
+solidcraft-cli run "$component_phase3_script" \
+    --in "$component_stage2" \
     --save "$component_design" \
     --quiet
 
@@ -1220,10 +1253,11 @@ if orphans:
 PY
 
 rm -f \
-    "$component_history_script" \
-    "$component_history_results" \
-    "$component_history_stage" \
-    "$component_move_script" \
+    "$component_phase1_script" \
+    "$component_phase2_script" \
+    "$component_phase3_script" \
+    "$component_stage1" \
+    "$component_stage2" \
     "$component_design" \
     "$component_cylinder_png"
 
