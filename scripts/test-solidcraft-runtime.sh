@@ -117,8 +117,7 @@ cat >"$component_cylinder_smoke" <<'JSON'
   "commands": [
     {
       "command": "component.create",
-      "params": {"name": "BossedPanel", "grounded": true},
-      "bind": {"$bossedpanel_occurrence_1": "occurrence"}
+      "params": {"name": "BossedPanel", "grounded": true}
     },
     {
       "command": "solid.box",
@@ -145,13 +144,12 @@ cat >"$component_cylinder_smoke" <<'JSON'
     {"command": "component.activate", "params": {"component": "root"}},
     {
       "command": "occurrence.copy",
-      "params": {"component": "BossedPanel"},
-      "bind": {"$bossedpanel_occurrence_2": "occurrence"}
+      "params": {"component": "BossedPanel"}
     },
     {
       "command": "occurrence.move",
       "params": {
-        "occurrence": "$bossedpanel_occurrence_1",
+        "occurrence": 1,
         "translate": [-30, 0, 0],
         "axis": [1, 0, 0],
         "angle": "90 deg",
@@ -161,7 +159,7 @@ cat >"$component_cylinder_smoke" <<'JSON'
     {
       "command": "occurrence.move",
       "params": {
-        "occurrence": "$bossedpanel_occurrence_2",
+        "occurrence": 2,
         "translate": [30, 0, 0],
         "axis": [1, 0, 0],
         "angle": "90 deg"
