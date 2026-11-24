@@ -1405,7 +1405,7 @@ with tempfile.TemporaryDirectory(prefix="hub75-history-") as directory:
             print(f"HUB75 reduction {label}: ERROR {exc}")
 
 
-def box_cylinder_timing_case(label, cylinder_before_save):
+def box_cylinder_timing_case(label, cylinder_before_save, reactivate=False):
     case = Path(tempfile.mkdtemp(prefix=f"{label}-"))
     p1 = case / "phase1.json"
     p1_results = case / "phase1-results.json"
@@ -1480,6 +1480,11 @@ def box_cylinder_timing_case(label, cylinder_before_save):
 
     phase2 = []
     if not cylinder_before_save:
+        if reactivate:
+            phase2.append({
+                "command": "component.activate",
+                "params": {"component": "BossedPanel"},
+            })
         phase2.append(cylinder)
     phase2.extend([
         {"command": "component.activate", "params": {"component": "root"}},
@@ -1595,11 +1600,23 @@ after_reopen_small = box_cylinder_timing_case(
     "box_cylinder_after_reopen",
     False,
 )
+after_reopen_reactivated_small = box_cylinder_timing_case(
+    "box_cylinder_after_reopen_reactivated",
+    False,
+    reactivate=True,
+)
 print(
     "HUB75 timing comparison: "
     f"before_save_small={len(before_save_small)} "
-    f"after_reopen_small={len(after_reopen_small)}"
+    f"after_reopen_small={len(after_reopen_small)} "
+    f"after_reopen_reactivated_small="
+    f"{len(after_reopen_reactivated_small)}"
 )
+if after_reopen_reactivated_small:
+    raise SystemExit(
+        "explicit component reactivation did not restore clean replay: "
+        f"{after_reopen_reactivated_small}"
+    )
 
 baseline = results.get("baseline", {})
 orphans = baseline.get("orphans", [])
