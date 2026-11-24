@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased (v0.3.4)
+## Unreleased (v0.3.5)
+
+### Changed
+
+- Upgrade the SolidCraft candidate from 0.45.0 to current stable 0.48.1.
+- Keep both runtime roles and all independent reference-engine pins unchanged.
+- Add a direct component-local joined-Cylinder render smoke for Forge #753 /
+  product-CAD #388: two rotated placed occurrences must render as exactly two
+  disconnected visible objects with no stale source/tool Cylinder at the
+  component-definition origin.
+- Retain all existing runtime composition, native Slot and negative role-boundary
+  smokes before consumer adoption.
+
+
+## v0.3.4
 
 ### Changed
 

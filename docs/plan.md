@@ -74,7 +74,36 @@ public case or qualify an appropriate engine release for that feature.
 
 ## Current work
 
-No runtime migration is active.
+### #26 — qualify SolidCraft 0.48.1 for Forge #753 / CAD #388
+
+Status: **now / runtime blocker qualification**.
+
+The current stable upstream release is SolidCraft **0.48.1**, exact release
+commit `e5bc9288aab2f6f1d8661afc6d9702d75a6e171e`. Forge #753 now owns a
+minimal retained reproducer for the HUB75 five-panel blocker: a reusable
+component containing a native joined Cylinder, copied and rotated into two
+occurrences.
+
+Prepare runtime **v0.3.5** as the candidate immutable upgrade:
+
+- pin exact SolidCraft 0.48.1;
+- keep the existing two-role composition unchanged;
+- retain all existing 0.45 owner-smoke contracts unless 0.48.1 proves a
+  documented incompatibility;
+- add a narrow owner smoke for the primitive/component-frame behavior that
+  triggered the migration where it can be asserted without importing Forge;
+- build and smoke both candidate role images in PR;
+- externally run Forge #753 against the candidate SolidCraft image before
+  release.
+
+Upstream SolidCraft #21098 / PR #21145 is a strong related lead but is still
+open and is **not** part of stable 0.48.1. Therefore a green 0.48.1 owner smoke
+alone is not proof that CAD #388 is fixed. If the Forge reproducer remains
+wrong on 0.48.1, record the exact runtime blocker instead of adding a consumer
+workaround.
+
+No v0.3.5 tag/image may be published until the owner smoke and external Forge
+qualification are both accepted.
 
 A new runtime release starts only for one of these reasons:
 
@@ -90,10 +119,12 @@ For such work:
 - never mutate v0.3.4;
 - only then update consumers.
 
-## Open issue assessment — 2026-11-21
+## Open issue assessment — 2026-11-24
 
-There is no active runtime implementation issue after completed #21.
+| Issue | Status | Next action |
+| --- | --- | --- |
+| #26 SolidCraft 0.48.1 / Forge component-Cylinder blocker | **now** | Build v0.3.5 candidate, run owner smoke, then qualify Forge #753 against the candidate image before release. |
 
 Immediate consumer chain:
 
-`runtime v0.3.4 -> Forge canonical 0.45 reference -> Forge version-sensitive qualification`.
+`runtime v0.3.4 / SolidCraft 0.45.0 -> v0.3.5 candidate / SolidCraft 0.48.1 -> Forge #753 external qualification -> immutable runtime release -> Forge adoption/release decision`.
