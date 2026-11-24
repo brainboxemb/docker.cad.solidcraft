@@ -95,6 +95,11 @@ runtime dependencies or image composition change.
 SolidCraft smoke proves:
 
 - `solidcraft-cli` starts and reports the exact pinned SolidCraft version;
+- a reusable component containing a native joined Cylinder can be copied,
+  translated and rotated without leaving a third visible source/tool object at
+  the component-definition origin; the owner smoke uses the same replay shape
+  retained by Forge #753 and requires exactly two disconnected rendered
+  foreground islands;
 - a parameter-driven native Slot width replays successfully, guarding the
   engine contract required by Forge rather than only checking process startup;
 - PyYAML and Pillow are present;
