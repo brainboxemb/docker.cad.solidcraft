@@ -1404,6 +1404,204 @@ with tempfile.TemporaryDirectory(prefix="hub75-history-") as directory:
             results[label] = {"error": str(exc)}
             print(f"HUB75 reduction {label}: ERROR {exc}")
 
+
+def box_cylinder_timing_case(label, cylinder_before_save):
+    case = root / label
+    case.mkdir()
+    p1 = case / "phase1.json"
+    p1_results = case / "phase1-results.json"
+    stage1 = case / "stage1.sc"
+    p2 = case / "phase2.json"
+    p2_results = case / "phase2-results.json"
+    stage2 = case / "stage2.sc"
+    p3 = case / "phase3.json"
+    design = case / "design.sc"
+    png = case / "preview.png"
+
+    phase1 = [
+        {
+            "command": "component.create",
+            "params": {"name": "BossedPanel", "grounded": True},
+        },
+        {
+            "command": "solid.box",
+            "params": {
+                "length": 20,
+                "width": 10,
+                "height": 4,
+                "operation": "new",
+                "center": [0, 0, 0],
+                "body_name": "BossedPanel",
+            },
+        },
+    ]
+    cylinder = {
+        "command": "solid.cylinder",
+        "params": {
+            "height": 4,
+            "diameter": 4,
+            "base": [6, 0, 1.5],
+            "axis": "Z",
+            "operation": "join",
+            "targets": ["BossedPanel"],
+        },
+    }
+    if cylinder_before_save:
+        phase1.append(cylinder)
+    p1.write_text(
+        json.dumps({"commands": phase1}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "solidcraft-cli", "run", str(p1),
+            "--save", str(stage1),
+            "--results",
+            "--json-out", str(p1_results),
+            "--quiet",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    raw = json.loads(p1_results.read_text(encoding="utf-8"))
+    rows = raw.get("results", raw) if isinstance(raw, dict) else raw
+    created = [
+        row["occurrence"]
+        for row in rows
+        if isinstance(row, dict)
+        and "component" in row
+        and "occurrence" in row
+    ]
+    if len(created) != 1:
+        raise RuntimeError(
+            f"{label}: expected one initial occurrence, got {created}"
+        )
+    first = created[0]
+
+    phase2 = []
+    if not cylinder_before_save:
+        phase2.append(cylinder)
+    phase2.extend([
+        {"command": "component.activate", "params": {"component": "root"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {
+            "command": "occurrence.move",
+            "params": {
+                "occurrence": first,
+                "translate": [0, 0, 40],
+                "axis": [1, 0, 0],
+                "angle": "90 deg",
+                "move_grounded": True,
+            },
+        },
+    ])
+    p2.write_text(
+        json.dumps({"commands": phase2}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "solidcraft-cli", "run", str(p2),
+            "--in", str(stage1),
+            "--save", str(stage2),
+            "--results",
+            "--json-out", str(p2_results),
+            "--quiet",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    raw = json.loads(p2_results.read_text(encoding="utf-8"))
+    rows = raw.get("results", raw) if isinstance(raw, dict) else raw
+    copies = [
+        row["occurrence"]
+        for row in rows
+        if isinstance(row, dict)
+        and "component" in row
+        and "occurrence" in row
+    ]
+    if len(copies) != 4:
+        raise RuntimeError(
+            f"{label}: expected four copies, got {copies}"
+        )
+
+    transforms = (
+        ([-60, 0, 40], [1, 0, 0], "90 deg"),
+        ([-30, 0, 40], [0, 1, -1], "180 deg"),
+        ([30, 0, 40], [0, 1, -1], "180 deg"),
+        ([60, 0, 40], [1, 0, 0], "90 deg"),
+    )
+    p3.write_text(
+        json.dumps(
+            {
+                "commands": [
+                    {
+                        "command": "occurrence.move",
+                        "params": {
+                            "occurrence": occurrence,
+                            "translate": translate,
+                            "axis": axis,
+                            "angle": angle,
+                        },
+                    }
+                    for occurrence, (translate, axis, angle)
+                    in zip(copies, transforms)
+                ]
+            },
+            indent=2,
+        ) + "\n",
+        encoding="utf-8",
+    )
+    run_quiet([
+        "solidcraft-cli", "run", str(p3),
+        "--in", str(stage2),
+        "--save", str(design),
+        "--quiet",
+    ])
+    run_quiet([
+        "solidcraft-cli", "snapshot", str(design),
+        "--out", str(png),
+        "--width", "720",
+        "--height", "540",
+        "--camera",
+        '{"target":[0,0,40],"yaw":-0.7853981633974483,'
+        '"pitch":0.5585053606381855,"roll":0,"distance":230,"fov":0}',
+        "--no-grid",
+        "--no-axes",
+        "--transparent",
+    ])
+    components, _orphans = analyze(png)
+    small = [
+        row
+        for row in components
+        if row["width"] < 30 and row["height"] < 30
+    ]
+    print(
+        f"HUB75 timing {label}: "
+        f"small={len(small)} components={components}"
+    )
+    return small
+
+
+before_save_small = box_cylinder_timing_case(
+    "box_cylinder_before_save",
+    True,
+)
+after_reopen_small = box_cylinder_timing_case(
+    "box_cylinder_after_reopen",
+    False,
+)
+print(
+    "HUB75 timing comparison: "
+    f"before_save_small={len(before_save_small)} "
+    f"after_reopen_small={len(after_reopen_small)}"
+)
+
 baseline = results.get("baseline", {})
 orphans = baseline.get("orphans", [])
 if not orphans:
