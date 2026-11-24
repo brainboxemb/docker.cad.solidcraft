@@ -2,23 +2,23 @@
 
 ## Current released state
 
-Runtime **v0.3.4** is the latest immutable published runtime.
+Runtime **v0.3.5** is the latest immutable published runtime.
 
 Exact release identity:
 
 - repository commit:
-  `89acce00bd760c523251c6c84d291d758c2a4dc5`;
-- SolidCraft: `0.45.0`;
+  `cb4295271173ac88deed92627c74456300c0393f`;
+- SolidCraft: `0.48.1`;
 - upstream SolidCraft release commit:
-  `e8ce12ef78fe76281a04b7242a9ce059ff7d5067`;
+  `e5bc9288aab2f6f1d8661afc6d9702d75a6e171e`;
 - immutable images:
-  - `ghcr.io/brainboxemb/cad-solidcraft:v0.3.4`;
-  - `ghcr.io/brainboxemb/cad-reference:v0.3.4`;
-- tag Build run #37 / `44952726885`: success;
-- GitHub Release `v0.3.4` published 2026-11-21 21:44:48Z.
+  - `ghcr.io/brainboxemb/cad-solidcraft:v0.3.5`;
+  - `ghcr.io/brainboxemb/cad-reference:v0.3.5`;
+- authoritative tag build `45366783017`: success;
+- GitHub Release `v0.3.5` published and immutable.
 
-Historical v0.3.3 / SolidCraft 0.43.0 remains immutable evidence but is not the
-active runtime baseline.
+Historical v0.3.4 / SolidCraft 0.45.0 and v0.3.3 / SolidCraft 0.43.0 remain
+immutable evidence but are not the active runtime baseline.
 
 ## Role boundary
 
@@ -74,36 +74,45 @@ public case or qualify an appropriate engine release for that feature.
 
 ## Current work
 
-### #26 — qualify SolidCraft 0.48.1 for Forge #753 / CAD #388
+### #26 — component-Cylinder render qualification
 
-Status: **now / runtime blocker qualification**.
+Status: **reopened / primary runtime blocker**.
 
-The current stable upstream release is SolidCraft **0.48.1**, exact release
-commit `e5bc9288aab2f6f1d8661afc6d9702d75a6e171e`. Forge #753 now owns a
-minimal retained reproducer for the HUB75 five-panel blocker: a reusable
-component containing a native joined Cylinder, copied and rotated into two
-occurrences.
+The original v0.3.5 acceptance used a Box + one joined Cylinder and two
+occurrences. That smoke passed on SolidCraft 0.48.1, but it was not equivalent
+to the downstream HUB75 history.
 
-Prepare runtime **v0.3.5** as the candidate immutable upgrade:
+Downstream consumer acceptance has now disproved the release claim:
 
-- pin exact SolidCraft 0.48.1;
-- keep the existing two-role composition unchanged;
-- retain all existing 0.45 owner-smoke contracts unless 0.48.1 proves a
-  documented incompatibility;
-- add a narrow owner smoke for the primitive/component-frame behavior that
-  triggered the migration where it can be asserted without importing Forge;
-- build and smoke both candidate role images in PR;
-- externally run Forge #753 against the candidate SolidCraft image before
-  release.
+- product CAD dev-cad source
+  `5fcfe6836973e13b1d3372a151735af195f22a4d`;
+- durable CAD run `45389479040`: success;
+- exact generated build
+  `d78a2d666eb7d7b1abfd2171e59fe8b309e51c6f`;
+- Forge v0.14.0 + runtime v0.3.5 / SolidCraft 0.48.1;
+- source-matched product render still contains detached joined-Cylinder tools.
 
-Upstream SolidCraft #21098 / PR #21145 is a strong related lead but is still
-open and is **not** part of stable 0.48.1. Therefore a green 0.48.1 owner smoke
-alone is not proof that CAD #388 is fixed. If the Forge reproducer remains
-wrong on 0.48.1, record the exact runtime blocker instead of adding a consumer
-workaround.
+Forge #753 now owns a larger retained reproducer with the relevant history:
+taper/rear cut, 14 Cylinder joins, 24 Hole features and five copied/rotated
+occurrences. PR #832 merged that fixture to Forge dev-cad as
+`89e04abd40930aef48d6519e69e2672f6bc4d88f`; durable run
+`45391583228` succeeded, and build `0acc9b15beb9e54b9f665917c6017c00123e627f`
+publishes preview blob `140ae01a4397f751273bde4010d0084e7aaf4131`
+showing the same detached cylinders.
 
-No v0.3.5 tag/image may be published until the owner smoke and external Forge
-qualification are both accepted.
+Runtime work now is:
+
+- replace the insufficient two-island smoke with the proven multi-feature
+  replay shape while keeping runtime independent of Forge;
+- render transparently and make detached render islands a hard failing owner
+  contract;
+- minimize the feature sequence after the failure is reproduced;
+- determine whether current SolidCraft 0.48.1 can be fixed/configured or a
+  newer upstream build is required;
+- publish a new immutable runtime only after the expanded owner regression and
+  external Forge/product acceptance are green.
+
+Do not mutate v0.3.5 and do not introduce a Forge/product geometry workaround.
 
 A new runtime release starts only for one of these reasons:
 
@@ -123,8 +132,8 @@ For such work:
 
 | Issue | Status | Next action |
 | --- | --- | --- |
-| #26 SolidCraft 0.48.1 / Forge component-Cylinder blocker | **now** | Build v0.3.5 candidate, run owner smoke, then qualify Forge #753 against the candidate image before release. |
+| #26 SolidCraft 0.48.1 / Forge component-Cylinder blocker | **reopened / now** | Replace the insufficient minimal render smoke with the proven HUB75-history reproducer, then minimize and fix the owner-layer defect. |
 
 Immediate consumer chain:
 
-`runtime v0.3.4 / SolidCraft 0.45.0 -> v0.3.5 candidate / SolidCraft 0.48.1 -> Forge #753 external qualification -> immutable runtime release -> Forge adoption/release decision`.
+`runtime v0.3.5 / SolidCraft 0.48.1 -> expanded #753 owner render regression -> minimal failing sequence -> owner fix/new immutable runtime -> Forge/product requalification`.

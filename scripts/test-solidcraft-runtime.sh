@@ -107,165 +107,1532 @@ if solidcraft-cli run "$plain_point_smoke" --quiet >/dev/null 2>&1; then
 fi
 rm -f "$plain_point_smoke"
 
-component_create_script="$(mktemp --suffix=.json)"
-component_create_results="$(mktemp --suffix=.json)"
-component_copy_script="$(mktemp --suffix=.json)"
-component_copy_results="$(mktemp --suffix=.json)"
-component_move_script="$(mktemp --suffix=.json)"
-component_stage1="$(mktemp --suffix=.sc)"
-component_stage2="$(mktemp --suffix=.sc)"
-component_design="$(mktemp --suffix=.sc)"
-component_cylinder_png="$(mktemp --suffix=.png)"
+component_phase1_script="$(mktemp --suffix=.json)"
+component_phase2_script="$(mktemp --suffix=.json)"
 
-cat >"$component_create_script" <<'JSON'
-{"commands":[
-  {"command":"component.create","params":{"name":"BossedPanel","grounded":true}},
-  {"command":"solid.box","params":{
-    "length":20,"width":10,"height":4,"operation":"new",
-    "center":[0,0,0],"body_name":"BossedPanel"
-  }},
-  {"command":"solid.cylinder","params":{
-    "height":4,"diameter":4,"base":[6,0,1.5],"axis":"Z",
-    "operation":"join","targets":["BossedPanel"]
-  }},
-  {"command":"component.activate","params":{"component":"root"}}
-]}
+cat >"$component_phase1_script" <<'JSON'
+{
+  "commands": [
+    {
+      "command": "component.create",
+      "params": {
+        "name": "Hub75HistoryPanel",
+        "grounded": true
+      }
+    },
+    {
+      "command": "sketch.create",
+      "params": {
+        "plane": "XY",
+        "name": "d1_Hub75HistoryPanel__Hub75HistoryPanel footprint"
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -79.85,
+          -159.855
+        ],
+        "p1": [
+          79.85,
+          159.855
+        ]
+      }
+    },
+    {
+      "command": "sketch.finish",
+      "params": {}
+    },
+    {
+      "command": "solid.extrude",
+      "params": {
+        "distance": 2,
+        "body_name": "Hub75HistoryPanel"
+      }
+    },
+    {
+      "command": "sketch.create",
+      "params": {
+        "plane": "XY",
+        "name": "d1_Hub75HistoryPanel__Hub75HistoryPanel rear start",
+        "offset": 2
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -79.85,
+          -159.855
+        ],
+        "p1": [
+          79.85,
+          159.855
+        ]
+      }
+    },
+    {
+      "command": "sketch.finish",
+      "params": {}
+    },
+    {
+      "command": "sketch.create",
+      "params": {
+        "plane": "XY",
+        "name": "d1_Hub75HistoryPanel__Hub75HistoryPanel rear perimeter",
+        "offset": 14.5
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -78.6,
+          -158.605
+        ],
+        "p1": [
+          78.6,
+          158.605
+        ]
+      }
+    },
+    {
+      "command": "sketch.finish",
+      "params": {}
+    },
+    {
+      "command": "solid.loft",
+      "params": {
+        "sections": [
+          {
+            "sketch": "d1_Hub75HistoryPanel__Hub75HistoryPanel rear start"
+          },
+          {
+            "sketch": "d1_Hub75HistoryPanel__Hub75HistoryPanel rear perimeter"
+          }
+        ],
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "model.faces",
+      "params": {
+        "body": "Hub75HistoryPanel"
+      }
+    }
+  ]
+}
 JSON
 
-solidcraft-cli run "$component_create_script" \
-    --save "$component_stage1" \
-    --results \
-    --json-out "$component_create_results" \
-    --quiet
-
-first_occurrence="$(
-python - "$component_create_results" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1], encoding="utf-8") as handle:
-    result = json.load(handle)
-rows = result.get("results", result) if isinstance(result, dict) else result
-print(rows[0]["occurrence"])
-PY
-)"
-
-cat >"$component_copy_script" <<'JSON'
-{"commands":[
-  {"command":"occurrence.copy","params":{"component":"BossedPanel"}}
-]}
+cat >"$component_phase2_script" <<'JSON'
+{
+  "commands": [
+    {
+      "command": "sketch.create",
+      "params": {
+        "plane": {
+          "face": [
+            18.40772842651739,
+            -98.41272842651739,
+            14.5
+          ],
+          "body": "Hub75HistoryPanel",
+          "index": 8
+        },
+        "project_edges": false,
+        "name": "d1_Hub75HistoryPanel__Rear electronics bays"
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -67.3734375,
+          -149.11474218749998
+        ],
+        "p1": [
+          67.3734375,
+          -89.91843749999998
+        ]
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -67.3734375,
+          -69.9365625
+        ],
+        "p1": [
+          67.3734375,
+          -9.990937500000001
+        ]
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -67.3734375,
+          9.990937500000001
+        ],
+        "p1": [
+          67.3734375,
+          69.9365625
+        ]
+      }
+    },
+    {
+      "command": "sketch.rectangle.two_point",
+      "params": {
+        "p0": [
+          -67.3734375,
+          89.91843749999998
+        ],
+        "p1": [
+          67.3734375,
+          149.11474218749998
+        ]
+      }
+    },
+    {
+      "command": "sketch.finish",
+      "params": {}
+    },
+    {
+      "command": "solid.extrude",
+      "params": {
+        "operation": "cut",
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "name": "Rear electronics bays",
+        "distance": 12.5,
+        "direction": "negative"
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          -152,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          -72,
+          -152,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          0,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          -72,
+          0,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          152,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          -72,
+          152,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -152,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          72,
+          -152,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          0,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          72,
+          0,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          152,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 0.8,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 13,
+        "diameter": 8.5,
+        "base": [
+          72,
+          152,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          -72,
+          -141,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          -141,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          -141,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          72,
+          -141,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -141,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -141,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          -72,
+          11,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          11,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          11,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          72,
+          -11,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -11,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -11,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          -72,
+          141,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          141,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          141,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 12.5,
+        "diameter": 14,
+        "base": [
+          72,
+          141,
+          2
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          141,
+          14.5
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 10,
+        "depth": 2.5,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          141,
+          12
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 2.5,
+        "depth": 10,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 3,
+        "diameter": 3,
+        "base": [
+          -75,
+          110,
+          14.5
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.cylinder",
+      "params": {
+        "height": 3,
+        "diameter": 3,
+        "base": [
+          75,
+          -110,
+          14.5
+        ],
+        "axis": "Z",
+        "operation": "join",
+        "targets": [
+          "Hub75HistoryPanel"
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          -152,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          0,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          -72,
+          152,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          -152,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          0,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "solid.hole",
+      "params": {
+        "position": [
+          72,
+          152,
+          15
+        ],
+        "targets": [
+          "Hub75HistoryPanel"
+        ],
+        "diameter": 3,
+        "depth": 13,
+        "direction": [
+          0,
+          0,
+          -1
+        ]
+      }
+    },
+    {
+      "command": "component.activate",
+      "params": {
+        "component": "root"
+      }
+    },
+    {
+      "command": "occurrence.copy",
+      "params": {
+        "component": "Hub75HistoryPanel"
+      }
+    },
+    {
+      "command": "occurrence.copy",
+      "params": {
+        "component": "Hub75HistoryPanel"
+      }
+    },
+    {
+      "command": "occurrence.copy",
+      "params": {
+        "component": "Hub75HistoryPanel"
+      }
+    },
+    {
+      "command": "occurrence.copy",
+      "params": {
+        "component": "Hub75HistoryPanel"
+      }
+    },
+    {
+      "command": "occurrence.move",
+      "params": {
+        "occurrence": 2,
+        "translate": [
+          0,
+          0,
+          160
+        ],
+        "axis": [
+          1,
+          0,
+          0
+        ],
+        "angle": "90 deg",
+        "move_grounded": true
+      }
+    }
+  ]
+}
 JSON
 
-solidcraft-cli run "$component_copy_script" \
-    --in "$component_stage1" \
-    --save "$component_stage2" \
-    --results \
-    --json-out "$component_copy_results" \
-    --quiet
-
-second_occurrence="$(
-python - "$component_copy_results" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1], encoding="utf-8") as handle:
-    result = json.load(handle)
-rows = result.get("results", result) if isinstance(result, dict) else result
-print(rows[0]["occurrence"])
-PY
-)"
-
-cat >"$component_move_script" <<JSON
-{"commands":[
-  {"command":"occurrence.move","params":{
-    "occurrence":${first_occurrence},
-    "translate":[-30,0,0],
-    "axis":[1,0,0],
-    "angle":"90 deg",
-    "move_grounded":true
-  }},
-  {"command":"occurrence.move","params":{
-    "occurrence":${second_occurrence},
-    "translate":[30,0,0],
-    "axis":[1,0,0],
-    "angle":"90 deg"
-  }}
-]}
-JSON
-
-solidcraft-cli run "$component_move_script" \
-    --in "$component_stage2" \
-    --save "$component_design" \
-    --quiet
-
-solidcraft-cli snapshot "$component_design" \
-    --out "$component_cylinder_png" \
-    --width 720 \
-    --height 540 \
-    --camera '{"target":[0,-1.75,0],"yaw":-0.7853981633974483,"pitch":0.5585053606381855,"roll":0,"distance":132,"fov":0}' \
-    --no-grid \
-    --no-axes \
-    --transparent
-
-python - "$component_cylinder_png" <<'PY'
+python - "$component_phase1_script" "$component_phase2_script" <<'PY'
 from collections import deque
+import json
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 
 from PIL import Image
 
 
-path = Path(sys.argv[1])
-with Image.open(path) as source:
-    image = source.convert("RGBA")
-    width, height = image.size
-    alpha = image.getchannel("A")
-    occupied = {
-        (x, y)
-        for y in range(height)
-        for x in range(width)
-        if alpha.getpixel((x, y)) >= 32
-    }
+phase1_path = Path(sys.argv[1])
+phase2_path = Path(sys.argv[2])
+phase2_source = json.loads(phase2_path.read_text(encoding="utf-8"))
+phase2_commands = phase2_source["commands"]
 
-components = []
-while occupied:
-    seed = occupied.pop()
-    queue = deque([seed])
-    size = 1
-    while queue:
-        x, y = queue.popleft()
-        for dx, dy in (
-            (-1, -1), (0, -1), (1, -1),
-            (-1, 0),            (1, 0),
-            (-1, 1),  (0, 1),  (1, 1),
+CAMERA = (
+    '{"target":[0,0,160],"yaw":-0.7853981633974483,'
+    '"pitch":0.5585053606381855,"roll":0,"distance":1319.505,"fov":0}'
+)
+
+
+def command_category(command, index):
+    kind = command["command"]
+    params = command.get("params", {})
+    if index <= 6:
+        return "rear_cut"
+    if kind == "solid.cylinder":
+        diameter = params.get("diameter")
+        height = params.get("height")
+        if diameter == 8.5 and height == 13:
+            return "mounting_cylinder"
+        if diameter == 14 and height == 12.5:
+            return "reinforcement_cylinder"
+        if diameter == 3 and height == 3:
+            return "locator_pin"
+    if kind == "solid.hole":
+        diameter = params.get("diameter")
+        depth = params.get("depth")
+        position = params.get("position", [None, None, None])
+        if diameter == 10 and depth == 0.8:
+            return "mounting_relief"
+        if (
+            (diameter == 10 and depth == 2.5)
+            or (diameter == 2.5 and depth == 10)
         ):
-            point = (x + dx, y + dy)
-            if point in occupied:
-                occupied.remove(point)
-                queue.append(point)
-                size += 1
-    if size >= 50:
-        components.append(size)
+            return "reinforcement_hole"
+        if diameter == 3 and depth == 13 and position[2] == 15:
+            return "final_bore"
+    return "assembly"
 
-components.sort(reverse=True)
-print(f"component Cylinder render islands: {components}")
-if len(components) != 2:
-    raise SystemExit(
-        "expected exactly two substantial visible occurrence islands; "
-        f"got {len(components)} ({components})"
+
+def is_first_mounting(command):
+    params = command.get("params", {})
+    point = params.get("base") or params.get("position")
+    return isinstance(point, list) and point[:2] == [-72, -152]
+
+
+VARIANTS = (
+    ("baseline", set(), False, False),
+    ("no_final_bores", {"final_bore"}, False, False),
+    (
+        "no_locators_or_final_bores",
+        {"locator_pin", "final_bore"},
+        False,
+        False,
+    ),
+    (
+        "no_reinforcement_holes_locators_final",
+        {"reinforcement_hole", "locator_pin", "final_bore"},
+        False,
+        False,
+    ),
+    (
+        "mounting_only",
+        {
+            "reinforcement_hole",
+            "reinforcement_cylinder",
+            "locator_pin",
+            "final_bore",
+        },
+        False,
+        False,
+    ),
+    (
+        "one_mounting_pair",
+        {
+            "reinforcement_hole",
+            "reinforcement_cylinder",
+            "locator_pin",
+            "final_bore",
+        },
+        True,
+        False,
+    ),
+    (
+        "one_cylinder_no_relief",
+        {
+            "reinforcement_hole",
+            "reinforcement_cylinder",
+            "locator_pin",
+            "final_bore",
+            "mounting_relief",
+        },
+        True,
+        False,
+    ),
+    (
+        "taper_one_cylinder_no_rear_cut",
+        {
+            "reinforcement_hole",
+            "reinforcement_cylinder",
+            "locator_pin",
+            "final_bore",
+            "mounting_relief",
+            "rear_cut",
+        },
+        True,
+        True,
+    ),
+)
+
+
+def filtered_phase2(remove_categories, first_mounting_only):
+    rows = []
+    for index, command in enumerate(phase2_commands):
+        category = command_category(command, index)
+        if category in remove_categories:
+            continue
+        if (
+            first_mounting_only
+            and category == "mounting_cylinder"
+            and not is_first_mounting(command)
+        ):
+            continue
+        if (
+            first_mounting_only
+            and category == "mounting_relief"
+            and not is_first_mounting(command)
+        ):
+            continue
+        rows.append(command)
+    return {"commands": rows}
+
+
+def analyze(path):
+    with Image.open(path) as source:
+        image = source.convert("RGBA")
+        width, height = image.size
+        alpha = image.getchannel("A")
+        occupied = {
+            (x, y)
+            for y in range(height)
+            for x in range(width)
+            if alpha.getpixel((x, y)) >= 32
+        }
+
+    components = []
+    while occupied:
+        seed = occupied.pop()
+        queue = deque([seed])
+        pixels = [seed]
+        while queue:
+            x, y = queue.popleft()
+            for dx, dy in (
+                (-1, -1), (0, -1), (1, -1),
+                (-1, 0),            (1, 0),
+                (-1, 1),  (0, 1),  (1, 1),
+            ):
+                point = (x + dx, y + dy)
+                if point in occupied:
+                    occupied.remove(point)
+                    queue.append(point)
+                    pixels.append(point)
+        if len(pixels) < 20:
+            continue
+        xs = [point[0] for point in pixels]
+        ys = [point[1] for point in pixels]
+        components.append(
+            {
+                "pixels": len(pixels),
+                "width": max(xs) - min(xs) + 1,
+                "height": max(ys) - min(ys) + 1,
+            }
+        )
+
+    components.sort(key=lambda row: row["pixels"], reverse=True)
+    orphans = [
+        row
+        for row in components
+        if row["width"] < 80 and row["height"] < 80
+    ]
+    return components, orphans
+
+
+def run_quiet(args):
+    subprocess.run(
+        args,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
+
+
+results = {}
+with tempfile.TemporaryDirectory(prefix="hub75-history-") as directory:
+    root = Path(directory)
+    stage1 = root / "stage1.sc"
+    run_quiet([
+        "solidcraft-cli", "run", str(phase1_path),
+        "--save", str(stage1),
+        "--quiet",
+    ])
+
+    for label, remove, first_only, _no_rear in VARIANTS:
+        variant_dir = root / label
+        variant_dir.mkdir()
+        p2 = variant_dir / "phase2.json"
+        p2_results = variant_dir / "phase2-results.json"
+        stage2 = variant_dir / "stage2.sc"
+        p3 = variant_dir / "phase3.json"
+        design = variant_dir / "design.sc"
+        png = variant_dir / "preview.png"
+
+        p2.write_text(
+            json.dumps(
+                filtered_phase2(remove, first_only),
+                indent=2,
+            ) + "\n",
+            encoding="utf-8",
+        )
+
+        try:
+            subprocess.run(
+                [
+                    "solidcraft-cli", "run", str(p2),
+                    "--in", str(stage1),
+                    "--save", str(stage2),
+                    "--results",
+                    "--json-out", str(p2_results),
+                    "--quiet",
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            raw = json.loads(p2_results.read_text(encoding="utf-8"))
+            rows = raw.get("results", raw) if isinstance(raw, dict) else raw
+            copies = [
+                row["occurrence"]
+                for row in rows
+                if isinstance(row, dict)
+                and "component" in row
+                and "occurrence" in row
+            ]
+            if len(copies) != 4:
+                raise RuntimeError(
+                    f"expected four copied occurrences, got {copies}"
+                )
+
+            transforms = (
+                ([-320, 0, 160], [1, 0, 0], "90 deg"),
+                ([-160, 0, 160], [0, 1, -1], "180 deg"),
+                ([160, 0, 160], [0, 1, -1], "180 deg"),
+                ([320, 0, 160], [1, 0, 0], "90 deg"),
+            )
+            p3.write_text(
+                json.dumps(
+                    {
+                        "commands": [
+                            {
+                                "command": "occurrence.move",
+                                "params": {
+                                    "occurrence": occurrence,
+                                    "translate": translate,
+                                    "axis": axis,
+                                    "angle": angle,
+                                },
+                            }
+                            for occurrence, (translate, axis, angle)
+                            in zip(copies, transforms)
+                        ]
+                    },
+                    indent=2,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            run_quiet([
+                "solidcraft-cli", "run", str(p3),
+                "--in", str(stage2),
+                "--save", str(design),
+                "--quiet",
+            ])
+            run_quiet([
+                "solidcraft-cli", "snapshot", str(design),
+                "--out", str(png),
+                "--width", "720",
+                "--height", "540",
+                "--camera", CAMERA,
+                "--no-grid",
+                "--no-axes",
+                "--transparent",
+            ])
+            components, orphans = analyze(png)
+            results[label] = {
+                "commands": len(json.loads(p2.read_text())["commands"]),
+                "components": components,
+                "orphans": orphans,
+            }
+            print(
+                f"HUB75 reduction {label}: "
+                f"commands={results[label]['commands']} "
+                f"orphans={len(orphans)} "
+                f"components={components}"
+            )
+        except Exception as exc:
+            results[label] = {"error": str(exc)}
+            print(f"HUB75 reduction {label}: ERROR {exc}")
+
+
+def box_cylinder_timing_case(label, cylinder_before_save, reactivate=False):
+    case = Path(tempfile.mkdtemp(prefix=f"{label}-"))
+    p1 = case / "phase1.json"
+    p1_results = case / "phase1-results.json"
+    stage1 = case / "stage1.sc"
+    p2 = case / "phase2.json"
+    p2_results = case / "phase2-results.json"
+    stage2 = case / "stage2.sc"
+    p3 = case / "phase3.json"
+    design = case / "design.sc"
+    png = case / "preview.png"
+
+    phase1 = [
+        {
+            "command": "component.create",
+            "params": {"name": "BossedPanel", "grounded": True},
+        },
+        {
+            "command": "solid.box",
+            "params": {
+                "length": 20,
+                "width": 10,
+                "height": 4,
+                "operation": "new",
+                "center": [0, 0, 0],
+                "body_name": "BossedPanel",
+            },
+        },
+    ]
+    cylinder = {
+        "command": "solid.cylinder",
+        "params": {
+            "height": 4,
+            "diameter": 4,
+            "base": [6, 0, 1.5],
+            "axis": "Z",
+            "operation": "join",
+            "targets": ["BossedPanel"],
+        },
+    }
+    if cylinder_before_save:
+        phase1.append(cylinder)
+    p1.write_text(
+        json.dumps({"commands": phase1}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "solidcraft-cli", "run", str(p1),
+            "--save", str(stage1),
+            "--results",
+            "--json-out", str(p1_results),
+            "--quiet",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    raw = json.loads(p1_results.read_text(encoding="utf-8"))
+    rows = raw.get("results", raw) if isinstance(raw, dict) else raw
+    created = [
+        row["occurrence"]
+        for row in rows
+        if isinstance(row, dict)
+        and "component" in row
+        and "occurrence" in row
+    ]
+    if len(created) != 1:
+        raise RuntimeError(
+            f"{label}: expected one initial occurrence, got {created}"
+        )
+    first = created[0]
+
+    phase2 = []
+    if not cylinder_before_save:
+        if reactivate:
+            phase2.append({
+                "command": "component.activate",
+                "params": {"component": "BossedPanel"},
+            })
+        phase2.append(cylinder)
+    phase2.extend([
+        {"command": "component.activate", "params": {"component": "root"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {"command": "occurrence.copy", "params": {"component": "BossedPanel"}},
+        {
+            "command": "occurrence.move",
+            "params": {
+                "occurrence": first,
+                "translate": [0, 0, 40],
+                "axis": [1, 0, 0],
+                "angle": "90 deg",
+                "move_grounded": True,
+            },
+        },
+    ])
+    p2.write_text(
+        json.dumps({"commands": phase2}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run(
+        [
+            "solidcraft-cli", "run", str(p2),
+            "--in", str(stage1),
+            "--save", str(stage2),
+            "--results",
+            "--json-out", str(p2_results),
+            "--quiet",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    raw = json.loads(p2_results.read_text(encoding="utf-8"))
+    rows = raw.get("results", raw) if isinstance(raw, dict) else raw
+    copies = [
+        row["occurrence"]
+        for row in rows
+        if isinstance(row, dict)
+        and "component" in row
+        and "occurrence" in row
+    ]
+    if len(copies) != 4:
+        raise RuntimeError(
+            f"{label}: expected four copies, got {copies}"
+        )
+
+    transforms = (
+        ([-60, 0, 40], [1, 0, 0], "90 deg"),
+        ([-30, 0, 40], [0, 1, -1], "180 deg"),
+        ([30, 0, 40], [0, 1, -1], "180 deg"),
+        ([60, 0, 40], [1, 0, 0], "90 deg"),
+    )
+    p3.write_text(
+        json.dumps(
+            {
+                "commands": [
+                    {
+                        "command": "occurrence.move",
+                        "params": {
+                            "occurrence": occurrence,
+                            "translate": translate,
+                            "axis": axis,
+                            "angle": angle,
+                        },
+                    }
+                    for occurrence, (translate, axis, angle)
+                    in zip(copies, transforms)
+                ]
+            },
+            indent=2,
+        ) + "\n",
+        encoding="utf-8",
+    )
+    run_quiet([
+        "solidcraft-cli", "run", str(p3),
+        "--in", str(stage2),
+        "--save", str(design),
+        "--quiet",
+    ])
+    run_quiet([
+        "solidcraft-cli", "snapshot", str(design),
+        "--out", str(png),
+        "--width", "720",
+        "--height", "540",
+        "--camera",
+        '{"target":[0,0,40],"yaw":-0.7853981633974483,'
+        '"pitch":0.5585053606381855,"roll":0,"distance":230,"fov":0}',
+        "--no-grid",
+        "--no-axes",
+        "--transparent",
+    ])
+    components, _orphans = analyze(png)
+    small = [
+        row
+        for row in components
+        if row["width"] < 30 and row["height"] < 30
+    ]
+    print(
+        f"HUB75 timing {label}: "
+        f"small={len(small)} components={components}"
+    )
+    return small
+
+
+before_save_small = box_cylinder_timing_case(
+    "box_cylinder_before_save",
+    True,
+)
+after_reopen_small = box_cylinder_timing_case(
+    "box_cylinder_after_reopen",
+    False,
+)
+after_reopen_reactivated_small = box_cylinder_timing_case(
+    "box_cylinder_after_reopen_reactivated",
+    False,
+    reactivate=True,
+)
+print(
+    "HUB75 timing comparison: "
+    f"before_save_small={len(before_save_small)} "
+    f"after_reopen_small={len(after_reopen_small)} "
+    f"after_reopen_reactivated_small="
+    f"{len(after_reopen_reactivated_small)}"
+)
+if after_reopen_reactivated_small:
+    raise SystemExit(
+        "explicit component reactivation did not restore clean replay: "
+        f"{after_reopen_reactivated_small}"
+    )
+
+baseline = results.get("baseline", {})
+orphans = baseline.get("orphans", [])
+if not orphans:
+    raise SystemExit(
+        "expanded HUB75 baseline unexpectedly has no detached render islands"
+    )
+
+print(
+    "HUB75 baseline detached islands remain a hard failure: "
+    f"{orphans}"
+)
+raise SystemExit(1)
 PY
 
-rm -f \
-    "$component_create_script" \
-    "$component_create_results" \
-    "$component_copy_script" \
-    "$component_copy_results" \
-    "$component_move_script" \
-    "$component_stage1" \
-    "$component_stage2" \
-    "$component_design" \
-    "$component_cylinder_png"
+rm -f "$component_phase1_script" "$component_phase2_script"
 
 if command -v cadcraft-cli >/dev/null 2>&1; then
     echo "unexpected cadcraft-cli in SolidCraft runtime" >&2
