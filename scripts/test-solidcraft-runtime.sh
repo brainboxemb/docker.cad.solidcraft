@@ -145,7 +145,8 @@ import sys
 
 with open(sys.argv[1], encoding="utf-8") as handle:
     result = json.load(handle)
-print(result["results"][0]["occurrence"])
+rows = result.get("results", result) if isinstance(result, dict) else result
+print(rows[0]["occurrence"])
 PY
 )"
 
@@ -169,7 +170,8 @@ import sys
 
 with open(sys.argv[1], encoding="utf-8") as handle:
     result = json.load(handle)
-print(result["results"][0]["occurrence"])
+rows = result.get("results", result) if isinstance(result, dict) else result
+print(rows[0]["occurrence"])
 PY
 )"
 
