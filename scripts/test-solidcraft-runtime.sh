@@ -1094,8 +1094,16 @@ print(" ".join(str(value) for value in occurrences))
 PY
 )"
 
-read -r occurrence_1 occurrence_2 occurrence_3 occurrence_4 occurrence_5 \
-    <<<"$occurrences"
+set -- $occurrences
+if [ "$#" -ne 5 ]; then
+    echo "expected five occurrence ids, got: $occurrences" >&2
+    exit 1
+fi
+occurrence_1="$1"
+occurrence_2="$2"
+occurrence_3="$3"
+occurrence_4="$4"
+occurrence_5="$5"
 
 cat >"$component_move_script" <<JSON
 {"commands":[
