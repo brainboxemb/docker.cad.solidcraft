@@ -88,7 +88,16 @@ justify a runtime-version upgrade. They require `cad_verification` to be
 absent.
 
 For SolidCraft upgrades, the smoke proves the exact CLI version and the narrow
-native contracts that justify consumer compatibility. The current Slot contract
+native contracts that justify consumer compatibility. A runtime defect that is
+visible in the SolidCraft snapshot renderer may be qualified directly in this
+owner layer when it can be expressed without consumer code. Forge #753 uses
+that boundary: the owner smoke replays one reusable Box + joined Cylinder,
+copies/rotates two occurrences, renders with a transparent background and
+requires exactly two substantial disconnected foreground islands. A stale
+definition/tool Cylinder therefore fails the runtime smoke even when body
+measurements remain correct.
+
+The current Slot contract
 set includes the upstream #15857 shape (one model parameter drives native Slot
 width), the straight-Slot dimensioned length path, and the numeric-only direct
 Slot-point boundary. These are engine/runtime smokes, not model-specific Forge
