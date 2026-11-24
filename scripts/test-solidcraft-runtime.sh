@@ -107,73 +107,96 @@ if solidcraft-cli run "$plain_point_smoke" --quiet >/dev/null 2>&1; then
 fi
 rm -f "$plain_point_smoke"
 
-component_cylinder_smoke="$(mktemp --suffix=.json)"
-component_cylinder_design="$(mktemp --suffix=.sc)"
+component_create_script="$(mktemp --suffix=.json)"
+component_create_results="$(mktemp --suffix=.json)"
+component_copy_script="$(mktemp --suffix=.json)"
+component_copy_results="$(mktemp --suffix=.json)"
+component_move_script="$(mktemp --suffix=.json)"
+component_stage1="$(mktemp --suffix=.sc)"
+component_stage2="$(mktemp --suffix=.sc)"
+component_design="$(mktemp --suffix=.sc)"
 component_cylinder_png="$(mktemp --suffix=.png)"
-cat >"$component_cylinder_smoke" <<'JSON'
-{
-  "format": "scpf-replay",
-  "version": 2,
-  "commands": [
-    {
-      "command": "component.create",
-      "params": {"name": "BossedPanel", "grounded": true}
-    },
-    {
-      "command": "solid.box",
-      "params": {
-        "length": 20,
-        "width": 10,
-        "height": 4,
-        "operation": "new",
-        "center": [0, 0, 0],
-        "body_name": "BossedPanel"
-      }
-    },
-    {
-      "command": "solid.cylinder",
-      "params": {
-        "height": 4,
-        "diameter": 4,
-        "base": [6, 0, 1.5],
-        "axis": "Z",
-        "operation": "join",
-        "targets": ["BossedPanel"]
-      }
-    },
-    {"command": "component.activate", "params": {"component": "root"}},
-    {
-      "command": "occurrence.copy",
-      "params": {"component": "BossedPanel"}
-    },
-    {
-      "command": "occurrence.move",
-      "params": {
-        "occurrence": 1,
-        "translate": [-30, 0, 0],
-        "axis": [1, 0, 0],
-        "angle": "90 deg",
-        "move_grounded": true
-      }
-    },
-    {
-      "command": "occurrence.move",
-      "params": {
-        "occurrence": 2,
-        "translate": [30, 0, 0],
-        "axis": [1, 0, 0],
-        "angle": "90 deg"
-      }
-    }
-  ]
-}
+
+cat >"$component_create_script" <<'JSON'
+{"commands":[
+  {"command":"component.create","params":{"name":"BossedPanel","grounded":true}},
+  {"command":"solid.box","params":{
+    "length":20,"width":10,"height":4,"operation":"new",
+    "center":[0,0,0],"body_name":"BossedPanel"
+  }},
+  {"command":"solid.cylinder","params":{
+    "height":4,"diameter":4,"base":[6,0,1.5],"axis":"Z",
+    "operation":"join","targets":["BossedPanel"]
+  }},
+  {"command":"component.activate","params":{"component":"root"}}
+]}
 JSON
 
-solidcraft-cli run "$component_cylinder_smoke" \
-    --save "$component_cylinder_design" \
+solidcraft-cli run "$component_create_script" \
+    --save "$component_stage1" \
+    --results \
+    --json-out "$component_create_results" \
     --quiet
 
-solidcraft-cli snapshot "$component_cylinder_design" \
+first_occurrence="$(
+python - "$component_create_results" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    result = json.load(handle)
+print(result["results"][0]["occurrence"])
+PY
+)"
+
+cat >"$component_copy_script" <<'JSON'
+{"commands":[
+  {"command":"occurrence.copy","params":{"component":"BossedPanel"}}
+]}
+JSON
+
+solidcraft-cli run "$component_copy_script" \
+    --in "$component_stage1" \
+    --save "$component_stage2" \
+    --results \
+    --json-out "$component_copy_results" \
+    --quiet
+
+second_occurrence="$(
+python - "$component_copy_results" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    result = json.load(handle)
+print(result["results"][0]["occurrence"])
+PY
+)"
+
+cat >"$component_move_script" <<JSON
+{"commands":[
+  {"command":"occurrence.move","params":{
+    "occurrence":${first_occurrence},
+    "translate":[-30,0,0],
+    "axis":[1,0,0],
+    "angle":"90 deg",
+    "move_grounded":true
+  }},
+  {"command":"occurrence.move","params":{
+    "occurrence":${second_occurrence},
+    "translate":[30,0,0],
+    "axis":[1,0,0],
+    "angle":"90 deg"
+  }}
+]}
+JSON
+
+solidcraft-cli run "$component_move_script" \
+    --in "$component_stage2" \
+    --save "$component_design" \
+    --quiet
+
+solidcraft-cli snapshot "$component_design" \
     --out "$component_cylinder_png" \
     --width 720 \
     --height 540 \
@@ -232,8 +255,14 @@ if len(components) != 2:
 PY
 
 rm -f \
-    "$component_cylinder_smoke" \
-    "$component_cylinder_design" \
+    "$component_create_script" \
+    "$component_create_results" \
+    "$component_copy_script" \
+    "$component_copy_results" \
+    "$component_move_script" \
+    "$component_stage1" \
+    "$component_stage2" \
+    "$component_design" \
     "$component_cylinder_png"
 
 if command -v cadcraft-cli >/dev/null 2>&1; then
