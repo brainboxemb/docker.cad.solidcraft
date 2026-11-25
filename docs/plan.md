@@ -72,7 +72,7 @@ performance improvements relevant to Forge/CAD consumers, including faster large
 sketch solving and parameter changes, faster opening of large designs, and less
 unnecessary recomputation of unaffected later features.
 
-Prepare the next immutable runtime release after v0.3.5:
+Prepare runtime **v0.3.6** as the candidate immutable release:
 
 - pin exact SolidCraft 0.49.0;
 - keep the existing two-role composition unchanged;
@@ -111,4 +111,4 @@ For such work:
 
 Immediate consumer chain:
 
-`runtime v0.3.5 / SolidCraft 0.48.1 -> next runtime candidate / SolidCraft 0.49.0 -> Forge #73/#74 qualification -> CAD consumer qualification -> immutable runtime release -> canonical Forge release`.
+`runtime v0.3.5 / SolidCraft 0.48.1 -> v0.3.6 candidate / SolidCraft 0.49.0 -> Forge #73/#74 qualification -> CAD consumer qualification -> immutable runtime release -> canonical Forge release`.

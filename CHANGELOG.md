@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased (v0.3.5)
+## Unreleased (v0.3.6)
+
+### Changed
+
+- Upgrade the SolidCraft runtime candidate from 0.48.1 to current stable 0.49.0.
+- Keep both runtime roles and all independent reference-engine pins unchanged.
+- Retain every v0.3.5 SolidCraft owner smoke, including native Slot contracts
+  and the component-local joined-Cylinder render regression.
+- Qualify Forge's retained sheet-metal regressions and the active Mounting Rail
+  M8 / Simple MFT consumer externally before publishing the immutable runtime.
+- Treat 0.49.0's large-sketch, parameter-edit and large-design performance
+  improvements as a deliberate reason for this current-stable upgrade; do not
+  make noisy wall-clock measurements a release gate.
+
+## v0.3.5
 
 ### Changed
 
