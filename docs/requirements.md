@@ -79,7 +79,8 @@ time.
 - the exact pinned Mitcad AppImage;
 - an owner-provided `mitcad-cli` wrapper that starts the AppImage CLI with
   headless AppImage/Qt settings;
-- only common system/runtime dependencies required to execute Mitcad.
+- Python 3.12 and only the system/runtime dependencies required to execute
+  Mitcad on its separately pinned Ubuntu 24.04 base.
 
 It must not contain:
 
