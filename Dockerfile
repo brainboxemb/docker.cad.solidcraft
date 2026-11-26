@@ -1,4 +1,5 @@
 ARG PYTHON_IMAGE
+ARG MITCAD_IMAGE
 FROM ${PYTHON_IMAGE} AS common
 
 ARG RUNTIME_VERSION
@@ -80,6 +81,90 @@ RUN chmod +x \
     && test-cad-solidcraft-runtime
 
 CMD ["cad-solidcraft-info"]
+
+
+FROM ${MITCAD_IMAGE} AS mitcad
+
+ARG RUNTIME_VERSION
+ARG MITCAD_VERSION
+ARG MITCAD_ARCH
+ARG MITCAD_APPIMAGE_SHA256
+
+LABEL org.opencontainers.image.source="https://github.com/brainboxemb/docker.cad.solidcraft"
+LABEL org.opencontainers.image.title="Mitcad CAD runtime"
+LABEL org.opencontainers.image.description="Isolated Mitcad native CAD runtime for experimental consumers"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    CAD_RUNTIME_VERSION=${RUNTIME_VERSION} \
+    CAD_RUNTIME_ROLE=mitcad \
+    CAD_MITCAD_RUNTIME_VERSION=${RUNTIME_VERSION} \
+    MITCAD_VERSION=${MITCAD_VERSION} \
+    MITCAD_ARCH=${MITCAD_ARCH} \
+    APPIMAGE_EXTRACT_AND_RUN=1 \
+    QT_QPA_PLATFORM=offscreen \
+    PATH=/opt/mitcad/bin:$PATH
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        python3 \
+        python-is-python3 \
+        python3-yaml \
+        libdbus-1-3 \
+        libegl1 \
+        libfontconfig1 \
+        libfreetype6 \
+        libgl1 \
+        libgl1-mesa-dri \
+        libglib2.0-0t64 \
+        libglx-mesa0 \
+        libice6 \
+        libopengl0 \
+        libsm6 \
+        libwayland-client0 \
+        libwayland-cursor0 \
+        libwayland-egl1 \
+        libx11-6 \
+        libx11-xcb1 \
+        libxcb-cursor0 \
+        libxcb-icccm4 \
+        libxcb-image0 \
+        libxcb-keysyms1 \
+        libxcb-randr0 \
+        libxcb-render-util0 \
+        libxcb-shape0 \
+        libxcb-xinerama0 \
+        libxcb-xkb1 \
+        libxext6 \
+        libxi6 \
+        libxkbcommon-x11-0 \
+        libxkbcommon0 \
+        libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    asset="Mitcad-${MITCAD_VERSION}-${MITCAD_ARCH}.AppImage"; \
+    base="https://github.com/mitcad/Mitcad/releases/download/v${MITCAD_VERSION}"; \
+    mkdir -p /opt/mitcad/bin /tmp/mitcad; \
+    cd /tmp/mitcad; \
+    curl --proto '=https' -fsSLo "${asset}" "${base}/${asset}"; \
+    printf '%s  %s\n' "${MITCAD_APPIMAGE_SHA256}" "${asset}" | sha256sum -c -; \
+    install -m 0755 "${asset}" /opt/mitcad/Mitcad.AppImage; \
+    rm -rf /tmp/mitcad
+
+COPY scripts/mitcad-cli /opt/mitcad/bin/mitcad-cli
+COPY scripts/cad-mitcad-info /usr/local/bin/cad-mitcad-info
+COPY scripts/test-mitcad-runtime.sh /usr/local/bin/test-cad-mitcad-runtime
+
+RUN chmod +x \
+        /opt/mitcad/bin/mitcad-cli \
+        /usr/local/bin/cad-mitcad-info \
+        /usr/local/bin/test-cad-mitcad-runtime \
+    && test-cad-mitcad-runtime
+
+CMD ["cad-mitcad-info"]
 
 
 FROM common AS reference

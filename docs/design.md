@@ -6,6 +6,7 @@
 docker.cad.solidcraft
   -> cad-solidcraft:vX.Y.Z
   -> cad-reference:vX.Y.Z
+  -> cad-mitcad:vX.Y.Z
 
 consumer CI
   -> selects one immutable runtime image
@@ -21,10 +22,13 @@ verification-library version.
 python base
    |
    v
-common
-  shared system libraries
-  PyYAML
-   |
+python base (Bookworm)                         pinned Ubuntu 24.04 base
+   |                                                     |
+   v                                                     v
+common                                                mitcad
+shared system libraries                              Mitcad AppImage
+PyYAML                                               Python 3.12
+   |                                                 headless CLI wrapper
    +-------------------------+
    |                         |
    v                         v
@@ -40,11 +44,15 @@ SolidCraft                trimesh
                           CADCraft
 ```
 
-Neither role contains `cad_verification`.
+No runtime role contains `cad_verification`.
 
 CADCraft is installed only in the reference role because it is an independent
-CAD/reference renderer. Consumer repositories provide CADCraft source/command
-data but do not download, pin or install the CADCraft executable themselves.
+CAD/reference renderer. Mitcad deliberately uses its own pinned Ubuntu 24.04
+base because the v0.70.0 AppImage requires a newer glibc/libstdc++ ABI than the
+Bookworm base shared by the other roles. It is exposed through a small `mitcad-cli` wrapper that sets
+`APPIMAGE_EXTRACT_AND_RUN=1` and `QT_QPA_PLATFORM=offscreen` before entering
+the AppImage CLI. Consumer repositories provide engine-specific source/command
+data but do not download, pin or install these executables themselves.
 
 ## Consumer verification injection
 
@@ -113,5 +121,5 @@ verification wheel works with the selected runtime image.
 
 ## Release model
 
-One runtime SemVer release publishes both role images from one exact tested
+One runtime SemVer release publishes all role images from one exact tested
 commit. Runtime releases are independent from verification-library releases.

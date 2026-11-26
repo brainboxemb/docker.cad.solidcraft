@@ -1,15 +1,30 @@
 # Changelog
 
-## Unreleased (v0.3.6)
+## Unreleased (v0.3.7)
+
+### Added
+
+- Add isolated `cad-mitcad` runtime role pinned to Mitcad 0.70.0.
+- Pin the exact x86_64 AppImage digest and expose `mitcad-cli` through the
+  accepted headless AppImage/Qt wrapper.
+- Add exact-version, MCP command-reference and negative role-boundary smokes.
 
 ### Changed
 
-- Upgrade the SolidCraft runtime candidate from 0.48.1 to current stable 0.49.0.
-- Keep both runtime roles and all independent reference-engine pins unchanged.
+- One runtime release now builds three role images while keeping
+  `cad-solidcraft` and `cad-reference` contents unchanged.
+
+## v0.3.6
+
+### Changed
+
+- Upgrade the SolidCraft runtime from 0.48.1 to current stable 0.49.0.
+- Keep both existing runtime roles and all independent reference-engine pins
+  unchanged.
 - Retain every v0.3.5 SolidCraft owner smoke, including native Slot contracts
   and the component-local joined-Cylinder render regression.
-- Qualify Forge's retained sheet-metal regressions and the active Mounting Rail
-  M8 / Simple MFT consumer externally before publishing the immutable runtime.
+- Accept Forge's retained sheet-metal regressions and the active Mounting Rail
+  M8 / Simple MFT consumer before publishing the immutable runtime.
 - Treat 0.49.0's large-sketch, parameter-edit and large-design performance
   improvements as a deliberate reason for this current-stable upgrade; do not
   make noisy wall-clock measurements a release gate.

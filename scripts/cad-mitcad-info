@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+echo "CAD runtime role: ${CAD_RUNTIME_ROLE:-unknown}"
+echo "CAD runtime version: ${CAD_RUNTIME_VERSION:-unknown}"
+echo "Mitcad: ${MITCAD_VERSION:-unknown}"
+mitcad-cli --version

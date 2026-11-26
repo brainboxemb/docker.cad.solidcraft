@@ -45,6 +45,10 @@ jobs:
             target: reference
             package: cad-reference
             smoke: test-cad-reference-runtime
+          - role: mitcad
+            target: mitcad
+            package: cad-mitcad
+            smoke: test-cad-mitcad-runtime
 
     steps:
       - name: Checkout
@@ -61,6 +65,10 @@ jobs:
           echo "runtime=${RUNTIME_VERSION}" >> "$GITHUB_OUTPUT"
           echo "python_image=${PYTHON_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "solidcraft=${SOLIDCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "mitcad_image=${MITCAD_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "mitcad=${MITCAD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "mitcad_arch=${MITCAD_ARCH}" >> "$GITHUB_OUTPUT"
+          echo "mitcad_sha256=${MITCAD_APPIMAGE_SHA256}" >> "$GITHUB_OUTPUT"
           echo "pythonscad=${PYTHONSCAD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "pybosl2_commit=${PYBOSL2_COMMIT}" >> "$GITHUB_OUTPUT"
           echo "cadquery=${CADQUERY_VERSION}" >> "$GITHUB_OUTPUT"
@@ -118,6 +126,10 @@ jobs:
             PYTHON_IMAGE=${{ steps.versions.outputs.python_image }}
             RUNTIME_VERSION=${{ steps.versions.outputs.runtime }}
             SOLIDCRAFT_VERSION=${{ steps.versions.outputs.solidcraft }}
+            MITCAD_IMAGE=${{ steps.versions.outputs.mitcad_image }}
+            MITCAD_VERSION=${{ steps.versions.outputs.mitcad }}
+            MITCAD_ARCH=${{ steps.versions.outputs.mitcad_arch }}
+            MITCAD_APPIMAGE_SHA256=${{ steps.versions.outputs.mitcad_sha256 }}
             PYTHONSCAD_VERSION=${{ steps.versions.outputs.pythonscad }}
             PYBOSL2_COMMIT=${{ steps.versions.outputs.pybosl2_commit }}
             CADQUERY_VERSION=${{ steps.versions.outputs.cadquery }}
@@ -173,8 +185,9 @@ jobs:
           Immutable images:
           - ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-solidcraft:${VERSION}
           - ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-reference:${VERSION}
+          - ghcr.io/${GITHUB_REPOSITORY_OWNER}/cad-mitcad:${VERSION}
 
-          Both role images were built and smoke-tested from the matching
+          All role images were built and smoke-tested from the matching
           immutable repository tag.
           EOF
 

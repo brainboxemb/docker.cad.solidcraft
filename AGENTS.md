@@ -47,10 +47,11 @@ preinstalled for efficiency. Installing a released library in this runtime does
 not transfer code ownership to this repository.
 
 Role images must stay separated by responsibility. `cad-solidcraft` contains
-SolidCraft plus shared verification dependencies. `cad-reference` contains
-PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft plus shared verification
-dependencies. Do not add a tool to both roles merely because an older
-monolithic image contained it.
+SolidCraft plus its lightweight shared dependencies. `cad-reference` contains
+PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft plus the heavy reference
+stack. `cad-mitcad` contains the pinned Mitcad native runtime only plus the
+common base dependencies needed to execute it. Do not add a tool to multiple
+roles merely because an older monolithic image contained it.
 
 ## Cache policy
 
@@ -67,8 +68,9 @@ Consumer repositories should depend only on the immutable role image they need,
 for example:
 
 ```text
-ghcr.io/brainboxemb/cad-solidcraft:v0.2.0
-ghcr.io/brainboxemb/cad-reference:v0.2.0
+ghcr.io/brainboxemb/cad-solidcraft:v0.3.7
+ghcr.io/brainboxemb/cad-reference:v0.3.7
+ghcr.io/brainboxemb/cad-mitcad:v0.3.7
 ```
 
 Consumers must not copy this repository's Dockerfile, version pins or release
