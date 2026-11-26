@@ -22,16 +22,19 @@ verification-library version.
 python base
    |
    v
-common
-  shared system libraries
-  PyYAML
-   |
-   +-------------------------+-------------------------+
-   |                         |                         |
-   v                         v                         v
-solidcraft                reference                 mitcad
-Pillow                    Pillow                    Mitcad AppImage
-SolidCraft                trimesh                   headless CLI wrapper
+python base (Bookworm)                         pinned Ubuntu 24.04 base
+   |                                                     |
+   v                                                     v
+common                                                mitcad
+shared system libraries                              Mitcad AppImage
+PyYAML                                               Python 3.12
+   |                                                 headless CLI wrapper
+   +-------------------------+
+   |                         |
+   v                         v
+solidcraft                reference
+Pillow                    Pillow
+SolidCraft                trimesh
                           scipy
                           matplotlib
                           PythonSCAD
@@ -44,8 +47,9 @@ SolidCraft                trimesh                   headless CLI wrapper
 No runtime role contains `cad_verification`.
 
 CADCraft is installed only in the reference role because it is an independent
-CAD/reference renderer. Mitcad is installed only in the Mitcad role and is
-exposed through a small `mitcad-cli` wrapper that sets
+CAD/reference renderer. Mitcad deliberately uses its own pinned Ubuntu 24.04
+base because the v0.70.0 AppImage requires a newer glibc/libstdc++ ABI than the
+Bookworm base shared by the other roles. It is exposed through a small `mitcad-cli` wrapper that sets
 `APPIMAGE_EXTRACT_AND_RUN=1` and `QT_QPA_PLATFORM=offscreen` before entering
 the AppImage CLI. Consumer repositories provide engine-specific source/command
 data but do not download, pin or install these executables themselves.
