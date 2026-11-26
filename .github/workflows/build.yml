@@ -65,6 +65,7 @@ jobs:
           echo "runtime=${RUNTIME_VERSION}" >> "$GITHUB_OUTPUT"
           echo "python_image=${PYTHON_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "solidcraft=${SOLIDCRAFT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "mitcad_image=${MITCAD_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "mitcad=${MITCAD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "mitcad_arch=${MITCAD_ARCH}" >> "$GITHUB_OUTPUT"
           echo "mitcad_sha256=${MITCAD_APPIMAGE_SHA256}" >> "$GITHUB_OUTPUT"
@@ -125,6 +126,7 @@ jobs:
             PYTHON_IMAGE=${{ steps.versions.outputs.python_image }}
             RUNTIME_VERSION=${{ steps.versions.outputs.runtime }}
             SOLIDCRAFT_VERSION=${{ steps.versions.outputs.solidcraft }}
+            MITCAD_IMAGE=${{ steps.versions.outputs.mitcad_image }}
             MITCAD_VERSION=${{ steps.versions.outputs.mitcad }}
             MITCAD_ARCH=${{ steps.versions.outputs.mitcad_arch }}
             MITCAD_APPIMAGE_SHA256=${{ steps.versions.outputs.mitcad_sha256 }}
