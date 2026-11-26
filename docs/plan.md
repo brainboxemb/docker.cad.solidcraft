@@ -2,66 +2,59 @@
 
 ## Current released state
 
-Runtime **v0.3.6** is the latest immutable published runtime.
+Runtime **v0.3.7** is the latest immutable published runtime.
 
 Exact release identity:
 
 - repository commit:
-  `fa323fba8146d36e2598d08cb88b3a74e8c71761`;
+  `50ba1afae583c4f45c14dada8c00d88a45eab36f`;
 - SolidCraft: `0.49.0`;
+- Mitcad: `0.70.0`;
 - annotated tag object:
-  `ab9b9b025902d838af0e24e664ad3d7d31eeb320`;
+  `0be191a09f1aef45143353336e8504240125dda9`;
+- authoritative tag Build run:
+  `45811771212` with all three runtime roles passing;
 - immutable images:
-  - `ghcr.io/brainboxemb/cad-solidcraft:v0.3.6`;
-  - `ghcr.io/brainboxemb/cad-reference:v0.3.6`;
-- GitHub Release `v0.3.6` published 2026-11-25 09:04:31Z.
+  - `ghcr.io/brainboxemb/cad-solidcraft:v0.3.7`;
+  - `ghcr.io/brainboxemb/cad-reference:v0.3.7`;
+  - `ghcr.io/brainboxemb/cad-mitcad:v0.3.7`;
+- GitHub Release `v0.3.7` published 2026-11-26 11:39:13Z.
 
-The v0.3.6 release retained the two-role composition and moved SolidCraft to
-0.49.0 after owner, Forge and CAD consumer checks passed. Existing older
-runtime tags remain immutable evidence.
+The v0.3.7 release keeps the existing SolidCraft and reference role contents
+and adds an isolated Mitcad role. Mitcad v0.70.0 uses its own pinned Ubuntu
+24.04 base because the upstream AppImage requires a newer glibc/libstdc++ ABI
+than the Bookworm base shared by the other roles.
+
+Before publication, Forge `exp` PR #230 qualified the exact candidate manifest
+through normal CAD-CI. `simple-box--scpf-mitcad:geometry` and
+`circle-negative-extrude--scpf-mitcad:geometry` both passed; the evidence PR
+was closed unmerged before the immutable tag was created.
+
+Existing older runtime tags remain immutable evidence.
 
 ## Current role boundary
 
-Released v0.3.6 contains:
+Released v0.3.7 contains:
 
 - `cad-solidcraft`: lightweight SolidCraft role;
 - `cad-reference`: PythonSCAD, pyBOSL2, CadQuery, build123d and CADCraft;
-- neither role embeds `lib.py.cad.verification`.
+- `cad-mitcad`: pinned Mitcad AppImage plus its headless `mitcad-cli`
+  wrapper;
+- no role embeds `lib.py.cad.verification`.
 
-Consumers supply their exact verification package separately.
+The Mitcad role deliberately does not contain SolidCraft, CADCraft or the
+reference-engine Python stack. Consumers supply their exact verification
+package separately.
 
 ## Current work
 
-### #32 — add isolated Mitcad v0.70.0 runtime role
-
-Status: **now / experimental consumer runtime extension**.
-
-Forge `exp` has already proved an isolated native Mitcad backend and
-`builder-scpf-mitcad`. The remaining owner-runtime boundary is an immutable
-runtime image that exposes the exact already-tested CLI without making Forge
-download an AppImage during model builds.
-
-Prepare runtime **v0.3.7** as the candidate release:
-
-- keep the existing `cad-solidcraft` and `cad-reference` contents unchanged;
-- add a third `cad-mitcad` image;
-- pin Mitcad `v0.70.0`, upstream commit
-  `806a4210126ab977ba678708dd476496ddbd2968`;
-- pin `Mitcad-0.70.0-x86_64.AppImage` SHA-256
-  `9e1e8919a0ccd8f48bba4b3d443c70fb92f44d6104357fc00c25bf4c18379551`;
-- expose `mitcad-cli` on `PATH` through the accepted headless wrapper;
-- run an owner smoke that checks the exact CLI version and MCP command-reference
-  resource without importing Forge;
-- prove the Mitcad role does not contain SolidCraft, CADCraft,
-  `cad_verification` or the reference-engine Python stack;
-- after owner PR and `:edge` builds pass, run Forge `exp` against the exact
-  candidate image before publishing v0.3.7.
-
-Do not publish an immutable v0.3.7 tag until the Forge consumer check is green.
+There is no active runtime-composition change after v0.3.7. New runtime work
+must start from a separate issue and qualify its owner and consumer boundaries
+before an immutable release.
 
 ## Later
 
 - #26 remains historical/open investigation around the older 0.48.1
-  component-Cylinder render history. Do not fold that work into #32.
+  component-Cylinder render history.
 - New engine/runtime changes require their own issue and immutable runtime
   release; never mutate an existing release tag.
