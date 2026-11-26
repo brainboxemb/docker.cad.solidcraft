@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+export APPIMAGE_EXTRACT_AND_RUN=1
+export QT_QPA_PLATFORM=offscreen
+exec /opt/mitcad/Mitcad.AppImage cli "$@"

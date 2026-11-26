@@ -72,6 +72,27 @@ It must not contain:
 The consumer supplies the exact released verification package at execution
 time.
 
+## Mitcad role
+
+`ghcr.io/brainboxemb/cad-mitcad:vX.Y.Z` contains:
+
+- the exact pinned Mitcad AppImage;
+- an owner-provided `mitcad-cli` wrapper that starts the AppImage CLI with
+  headless AppImage/Qt settings;
+- only common system/runtime dependencies required to execute Mitcad.
+
+It must not contain:
+
+- SolidCraft;
+- CADCraft;
+- PythonSCAD, pyBOSL2, CadQuery or build123d;
+- `lib.py.cad.verification` / `cad_verification`;
+- the heavy trimesh/scipy/matplotlib reference stack.
+
+Mitcad SCPF lowering, command documents, topology binding and model checks remain
+owned by Forge. The runtime image owns only executable packaging and its narrow
+CLI/MCP smoke.
+
 ## Dependency boundary
 
 A verification-library release must not require a Docker runtime release.
@@ -84,9 +105,9 @@ runtime dependencies or image composition change.
 
 ## Build and publication
 
-- pull requests build and smoke-test both images without publishing;
-- `main` publishes and smoke-tests both `:edge` images;
-- immutable `vX.Y.Z` tags publish and smoke-test both images;
+- pull requests build and smoke-test all role images without publishing;
+- `main` publishes and smoke-tests all `:edge` role images;
+- immutable `vX.Y.Z` tags publish and smoke-test all role images;
 - the release workflow validates exact version and commit;
 - no GitHub Actions cache transport is used for Docker layers.
 
@@ -113,7 +134,15 @@ Reference smoke proves:
 - CADCraft reports the exact pinned version;
 - Pillow, trimesh, scipy and matplotlib are present;
 - `cad_verification` is absent;
-- SolidCraft is absent.
+- SolidCraft and Mitcad are absent.
+
+Mitcad smoke proves:
+
+- `mitcad-cli` reports the exact pinned Mitcad version;
+- the MCP server accepts the pinned protocol and exposes the command-reference
+  resource with required native commands;
+- `cad_verification`, SolidCraft, CADCraft and the reference-engine Python
+  stack are absent.
 
 ## Consumer migration
 

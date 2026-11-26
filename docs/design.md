@@ -6,6 +6,7 @@
 docker.cad.solidcraft
   -> cad-solidcraft:vX.Y.Z
   -> cad-reference:vX.Y.Z
+  -> cad-mitcad:vX.Y.Z
 
 consumer CI
   -> selects one immutable runtime image
@@ -25,12 +26,12 @@ common
   shared system libraries
   PyYAML
    |
-   +-------------------------+
-   |                         |
-   v                         v
-solidcraft                reference
-Pillow                    Pillow
-SolidCraft                trimesh
+   +-------------------------+-------------------------+
+   |                         |                         |
+   v                         v                         v
+solidcraft                reference                 mitcad
+Pillow                    Pillow                    Mitcad AppImage
+SolidCraft                trimesh                   headless CLI wrapper
                           scipy
                           matplotlib
                           PythonSCAD
@@ -40,11 +41,14 @@ SolidCraft                trimesh
                           CADCraft
 ```
 
-Neither role contains `cad_verification`.
+No runtime role contains `cad_verification`.
 
 CADCraft is installed only in the reference role because it is an independent
-CAD/reference renderer. Consumer repositories provide CADCraft source/command
-data but do not download, pin or install the CADCraft executable themselves.
+CAD/reference renderer. Mitcad is installed only in the Mitcad role and is
+exposed through a small `mitcad-cli` wrapper that sets
+`APPIMAGE_EXTRACT_AND_RUN=1` and `QT_QPA_PLATFORM=offscreen` before entering
+the AppImage CLI. Consumer repositories provide engine-specific source/command
+data but do not download, pin or install these executables themselves.
 
 ## Consumer verification injection
 
@@ -113,5 +117,5 @@ verification wheel works with the selected runtime image.
 
 ## Release model
 
-One runtime SemVer release publishes both role images from one exact tested
+One runtime SemVer release publishes all role images from one exact tested
 commit. Runtime releases are independent from verification-library releases.
