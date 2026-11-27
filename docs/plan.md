@@ -48,9 +48,34 @@ package separately.
 
 ## Current work
 
-There is no active runtime-composition change after v0.3.7. New runtime work
-must start from a separate issue and qualify its owner and consumer boundaries
-before an immutable release.
+Issue #36 is the active runtime qualification: adopt upstream SolidCraft
+**0.50.0** as the next immutable SolidCraft runtime while preserving the
+released role boundaries.
+
+Qualification target:
+
+- candidate runtime version: **v0.3.8**;
+- SolidCraft: exact stable **0.50.0**, upstream commit
+  `eeb366c2ff276987a15c043d63b9072b58274703`;
+- `cad-reference`: keep its current released engine/library pins unchanged;
+- `cad-mitcad`: keep Mitcad **0.70.0** and its current role/base unchanged;
+- retain every current runtime smoke and negative role-boundary check.
+
+Forge #73 has already exercised the same contour-flange recess fixture on
+SolidCraft 0.49.0 and 0.50.0. Both versions show the same engine behavior:
+phased headless replay passes, while single-process and live replay reject the
+broad-face cut until the contour-flange body is saved and reopened. Therefore
+v0.50.0 must not be presented as fixing #73, and the runtime must not add a
+save/reopen or model workaround for it.
+
+Owner qualification is only the first gate. After a green v0.3.8 candidate is
+on `main` / `:edge`, current normal Forge `dev` must qualify that exact
+candidate, including its sheet-metal owners and the retained #73 known-behavior
+evidence. Affected active CAD consumers must then qualify the candidate before
+immutable publication.
+
+Do not publish v0.3.8 or mutate v0.3.7 until those owner and consumer gates are
+green.
 
 ## Later
 
