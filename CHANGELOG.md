@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased (v0.3.7)
+## Unreleased (v0.3.8)
+
+### Changed
+
+- Upgrade only the `cad-solidcraft` engine from SolidCraft 0.49.0 to current
+  stable 0.50.0.
+- Keep the `cad-reference` engine/library pins and the `cad-mitcad`
+  0.70.0 runtime unchanged.
+- Retain all v0.3.7 runtime smokes and role-boundary checks before consumer
+  qualification.
+- Record Forge #73 as a known unchanged SolidCraft engine behavior: 0.50.0
+  still requires save/reopen of a freshly created contour-flange body before
+  the retained broad-face recess succeeds. Do not add a runtime workaround.
+
+## v0.3.7
 
 ### Added
 
